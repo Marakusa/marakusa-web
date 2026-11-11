@@ -9,7 +9,7 @@ const Header: React.FC = () => {
         <a href="/store" className="link-text">Store</a>
         <a href="/pricing" className="link-text">Pricing</a>
         <a href="/licenses" className="link-text">Licenses</a>
-        <Button onClick={() => alert('Button clicked!')}>Log In</Button>
+        <Button onClick={() => window.location.href = '/login'}>Log In</Button>
       </nav>
     </header>
   );

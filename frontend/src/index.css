@@ -20,7 +20,7 @@
     rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
 
   --sans: 'Switzer-Regular', system-ui, sans-serif;
-  --heading: 'Libre Baskerville', serif;
+  --heading: 'Switzer-Bold', system-ui, sans-serif;
   --title: 'Bebas Neue', system-ui, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
@@ -144,12 +144,17 @@ code {
   font-weight: 600;
   box-shadow: 6px 6px 0 0 var(--accent-border);
   cursor: pointer;
+  transition: all 0.05s ease-in-out;
 }
-
 .btn:hover {
   background-color: var(--accent-hover);
-  box-shadow: 0px 0px 0 0 var(--accent-border);
-  transform: translate(6px, 6px);
+  box-shadow: 4px 4px 0 0 var(--accent-border);
+  transform: translate(2px, 2px);
+}
+.btn:active {
+  background-color: var(--accent-hover);
+  box-shadow: 2px 2px 0 0 var(--accent-border);
+  transform: translate(4px, 4px);
 }
 
 nav .link-text {
