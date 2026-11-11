@@ -1,6 +1,4 @@
-import React from 'react';
-
-const NotFound: React.FC = () => {
+function NotFound() {
   return (
     <div className="text-center my-20">
       <h1>404 - Page Not Found</h1>
