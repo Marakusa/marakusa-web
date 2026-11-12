@@ -54,4 +54,19 @@ const listCollectionDocuments = async (databaseId, collectionId) => {
     return documents;
 };
 
-module.exports = { initAppwrite, listCollectionDocuments };
+const queryDocuments = async (databaseId, collectionId, query) => {
+    if (!databases) {
+        throw new Error('Appwrite must be initialized before querying collections');
+    }
+
+    const service = databases;
+
+    if (!databaseId || !collectionId) {
+        throw new Error('Appwrite database ID and collection ID are required');
+    }
+
+    const result = await service.listDocuments(databaseId, collectionId, query);
+    return result.documents;
+};
+
+module.exports = { initAppwrite, listCollectionDocuments, queryDocuments };
