@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../context/auth';
 
 const AuthCallback = () => {
     const navigate = useNavigate();
+    const { authenticate } = useAuth();
     const requestStarted = useRef(false);
 
     const [error, setError] = useState<string | null>(null);
@@ -15,19 +17,24 @@ const AuthCallback = () => {
         if (!code) return;
 
         requestStarted.current = true;
-        fetch(`/api/auth/verify?code=${encodeURIComponent(code)}`)
-            .then(response => response.json())
-            .then(data => {
-                if (!data.token) throw new Error('Authentication failed');
+        const verify = async () => {
+            try {
+                const response = await fetch(`/api/auth/verify?code=${encodeURIComponent(code)}`);
+                const data: { token?: string; error?: string } = await response.json();
+                if (!response.ok || !data.token) {
+                    throw new Error(data.error || 'Authentication failed');
+                }
 
-                localStorage.setItem('token', data.token);
+                await authenticate(data.token);
                 navigate('/');
-            })
-            .catch(err => {
+            } catch (err) {
                 console.error('Error verifying authentication:', err);
                 setError('Authentication failed');
-            });
-    }, [navigate]);
+            }
+        };
+
+        void verify();
+    }, [authenticate, navigate]);
 
     if (error) {
         return <div>{error}</div>;
