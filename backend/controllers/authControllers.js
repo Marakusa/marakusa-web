@@ -28,6 +28,9 @@ const verify = async (req, res) => {
             [Query.equal('discord_id', discordUserData.id)]
         );
         const profile = profiles.length ? profiles[0] : null;
+        if (!profile) {
+            throw new Error('Profile not found for Discord user');
+        }
         
         // Generate JWT for user
         const token = await generateToken(
@@ -42,6 +45,7 @@ const verify = async (req, res) => {
         
         res.json({ token });
     } catch (error) {
+        console.error('Error verifying Discord callback:', error);
         res.status(500).json({ error: error.message });
     }
 };
