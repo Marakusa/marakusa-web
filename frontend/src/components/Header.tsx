@@ -18,7 +18,7 @@ const Header: React.FC = () => {
         <>
             <header>
                 <h1 className="select-none cursor-pointer" onClick={() => window.location.href = '/'}>Marakusa</h1>
-                <nav className="flex space-x-12 select-none">
+                <nav className="flex space-x-12 select-none items-center">
                     <LinkText href="/store">Store</LinkText>
                     <LinkText href="/pricing">Pricing</LinkText>
                     <LinkText href="/licenses">Licenses</LinkText>
@@ -29,7 +29,15 @@ const Header: React.FC = () => {
                                 <ContextMenu>
                                     <LinkText href="/profile">Profile</LinkText>
                                     <LinkText href="/settings">Settings</LinkText>
-                                    <hr className="mt-2 opacity-25"></hr>
+                                    <hr className="mt-1 opacity-25"></hr>
+                                    
+                                    {user?.admin && (
+                                        <>
+                                            <LinkText href="/dashboard">Dashboard</LinkText>
+                                            <hr className="mt-1 opacity-25"></hr>
+                                        </>
+                                    )}
+
                                     <a onClick={logout} className="link-text">Log Out</a>
                                 </ContextMenu>
                             )}

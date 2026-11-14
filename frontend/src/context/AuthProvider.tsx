@@ -7,8 +7,8 @@ const getUserFromToken = async (token: string): Promise<AuthUser> => {
     });
     if (!response.ok) throw new Error('Invalid token');
 
-    const data: { user: AuthUser } = await response.json();
-    return data.user;
+    const data: AuthUser = await response.json();
+    return data;
 };
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {

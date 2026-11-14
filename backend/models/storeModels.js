@@ -1,11 +1,10 @@
-const { listCollectionDocuments } = require('../services/appwrite');
 const { products: jinxxyProductsService, product: jinxxyProductService } = require('../services/jinxxy');
 
-const listProducts = () =>
+/*const listProducts = () =>
     listCollectionDocuments(
         process.env.APPWRITE_DATABASE_ID,
         process.env.APPWRITE_STORE_PRODUCTS_COLLECTION_ID,
-    );
+    );*/
 
 const jinxxyProducts = async () => {
     const limit = 10;
@@ -40,4 +39,4 @@ const jinxxyProducts = async () => {
     return allResults;
 };
 
-module.exports = { listProducts, jinxxyProducts };
+module.exports = { /*listProducts,*/ jinxxyProducts };

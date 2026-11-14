@@ -1,7 +1,6 @@
-const { discordLogin, discordCallback, generateToken, discordGetUser } = require('../models/authModels');
+const { discordLogin, discordCallback, generateToken, discordGetUser, Profile } = require('../models/authModels');
+const { verifyProfile } = require('../utils/profileUtils');
 const jwt = require('jsonwebtoken');
-const { queryDocuments } = require('../services/appwrite');
-const { Query } = require('node-appwrite');
 
 const login = async (req, res) => {
     try {
@@ -16,33 +15,24 @@ const login = async (req, res) => {
 const verify = async (req, res) => {
     try {
         const { code } = req.query;
-
+        
         // Handle Discord OAuth callback
         const data = await discordCallback(code);
         const discordUserData = await discordGetUser(data.access_token);
 
         // Find the profile attached to the Discord ID
-        const profiles = await queryDocuments(
-            process.env.APPWRITE_DATABASE_ID,
-            process.env.APPWRITE_PROFILES_COLLECTION_ID,
-            [Query.equal('discord_id', discordUserData.id)]
-        );
-        const profile = profiles.length ? profiles[0] : null;
+        let profile = await Profile.findOne({ discord_id: discordUserData.id });
         if (!profile) {
-            throw new Error('Profile not found for Discord user');
+            profile = await Profile.create({ discord_id: discordUserData.id });
         }
+
+        // Update username and avatar to the latest
+        profile.username = discordUserData.username;
+        profile.avatar = discordUserData.avatar;
+        await profile.save();
         
         // Generate JWT for user
-        const token = await generateToken(
-            discordUserData.id, 
-            discordUserData.username, 
-            parseDiscordAvatarUrl(discordUserData), 
-            {
-                $id: profile.$id ?? null,
-                id: profile ? profile.$id : null
-            }
-        );
-        
+        const token = await generateToken(discordUserData.id, profile?._id);
         res.json({ token });
     } catch (error) {
         console.error('Error verifying Discord callback:', error);
@@ -50,17 +40,13 @@ const verify = async (req, res) => {
     }
 };
 
-const parseDiscordAvatarUrl = (discordUserData) => {
-    if (!discordUserData.avatar) return null;
-    const isGif = discordUserData.avatar.startsWith('a_');
-    const format = isGif ? 'gif' : 'png';
-    return `https://cdn.discordapp.com/avatars/${discordUserData.id}/${discordUserData.avatar}.${format}`;
-};
-
-const me = (req, res) => {
+const me = async (req, res) => {
     try {
         const decoded = jwt.verify(req.headers.authorization.split(' ')[1], process.env.JWT_SECRET);
-        res.json({ user: decoded });
+
+        // Verify the user role
+        const profile = await verifyProfile(decoded.profileId);
+        res.json({ ...profile.toObject(), admin: profile?.role === 'admin' });
     } catch (error) {
         res.status(401).json({ error: 'Invalid token' });
     }

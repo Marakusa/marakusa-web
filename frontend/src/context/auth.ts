@@ -1,13 +1,12 @@
 import { createContext, useContext } from 'react';
 
 export interface AuthUser {
-    discordId: string;
+    _id: string;
+    discord_id: string;
     username: string;
     avatar: string | null;
-    profile: {
-        $id: string | null;
-        id: string | null;
-    };
+    role: string;
+    admin: boolean;
 }
 
 export interface AuthContextValue {

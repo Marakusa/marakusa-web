@@ -1,9 +1,10 @@
-const { listProducts, jinxxyProducts } = require('../models/storeModels');
+const { /*listProducts,*/ jinxxyProducts } = require('../models/storeModels');
 
 const getAllProducts = async (req, res) => {
     try {
-        const products = await listProducts();
-        res.json(products);
+        // const products = await listProducts();
+        // res.json(products);
+        res.json([]);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }

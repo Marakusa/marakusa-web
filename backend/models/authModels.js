@@ -1,4 +1,4 @@
-const { getDocument, upsertDocument } = require('../services/appwrite');
+const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 
 const discordLogin = async () => {
@@ -34,21 +34,30 @@ const discordGetUser = async (accessToken) => {
     return data;
 };
 
-const generateToken = async (discordId, username, avatar, profile) => {
+const generateToken = async (discordId, profileId) => {
     const sessionData = {
         discordId,
-        username,
-        avatar,
-        profile,
+        profileId,
     };
     
     const token = jwt.sign(sessionData, process.env.JWT_SECRET, { expiresIn: '30d' });
     return token;
 };
 
+const ProfileSchema = new mongoose.Schema({
+    _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
+    discord_id: { type: String, required: true },
+    username: { type: String },
+    avatar: { type: String },
+    role: { type: String, default: "user" }
+});
+
+const Profile = mongoose.model("Profile", ProfileSchema);
+
 module.exports = {
     discordLogin,
     discordCallback,
     discordGetUser,
-    generateToken
+    generateToken,
+    Profile
 };

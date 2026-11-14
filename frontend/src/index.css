@@ -202,3 +202,8 @@ nav .link-text {
 .avatar-menu-anchor {
     position: relative;
 }
+
+.box {
+  border: 2px solid var(--accent-border);
+  box-shadow: 4px 4px 0 0 var(--accent-border);
+}
