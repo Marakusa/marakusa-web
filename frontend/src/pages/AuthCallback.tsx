@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/auth';
+import { Spinner } from '../components/Spinner';
 
 const AuthCallback = () => {
     const navigate = useNavigate();
@@ -36,7 +37,7 @@ const AuthCallback = () => {
         void verify();
     }, [authenticate, navigate]);
 
-    return <div className={`flex justify-center items-center py-6 box ${error ? 'text-red-500' : ''}`}>{error ? error : 'Authorization in progress...'}</div>;
+    return <div className={`flex justify-center items-center py-6 ${error ? 'text-red-500' : ''}`}>{error ? error : <Spinner />}</div>;
 };
 
 export default AuthCallback;

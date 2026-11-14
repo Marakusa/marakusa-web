@@ -8,7 +8,7 @@ function Dashboard() {
     }
 
     return (
-        <div>
+        <div className="grow">
             <h1>Dashboard</h1>
         </div>
     );

@@ -1,6 +1,5 @@
-const { Profile } = require('../models/authModels');
+const { Profile } = require('../models/profileModels');
 
-const { verifyProfile } = require('../utils/profileUtils');
 const jwt = require('jsonwebtoken');
 
 const verifyJwt = (req, res, next) => {
@@ -29,9 +28,13 @@ const auth = (req, res, next) => {
     }
 };
 
-const authAdmin = (req, res, next) => {
+const authAdmin = async (req, res, next) => {
     try {
-        if (!req.user || req.user?.role !== 'admin') {
+        if (!req.user) {
+            throw new Error('Unauthorized');
+        }
+        const profile = await Profile.findById(req.user.profileId);
+        if (!profile || profile?.role !== 'admin') {
             throw new Error('Unauthorized');
         }
         next();

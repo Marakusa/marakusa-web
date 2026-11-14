@@ -1,6 +1,6 @@
 function Store() {
   return (
-    <div className="h-screen">
+    <div className="grow">
       <h1>Store Page</h1>
     </div>
   );

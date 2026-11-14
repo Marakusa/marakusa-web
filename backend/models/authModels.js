@@ -1,4 +1,3 @@
-const mongoose = require('mongoose');
 const jwt = require('jsonwebtoken');
 
 const discordLogin = async () => {
@@ -44,20 +43,9 @@ const generateToken = async (discordId, profileId) => {
     return token;
 };
 
-const ProfileSchema = new mongoose.Schema({
-    _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
-    discord_id: { type: String, required: true },
-    username: { type: String },
-    avatar: { type: String },
-    role: { type: String, default: "user" }
-});
-
-const Profile = mongoose.model("Profile", ProfileSchema);
-
 module.exports = {
     discordLogin,
     discordCallback,
     discordGetUser,
-    generateToken,
-    Profile
+    generateToken
 };

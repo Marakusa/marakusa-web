@@ -9,6 +9,7 @@ import NotFound from './pages/NotFound';
 import AuthCallback from './pages/AuthCallback';
 import { AuthProvider } from './context/AuthProvider';
 import Dashboard from './pages/dashboard/Dashboard';
+import Profile from './pages/Profile';
 
 function App() {
     return (
@@ -20,6 +21,12 @@ function App() {
                     <Route path="/store" element={<Store />} />
 
                     <Route path="/auth/callback" element={<AuthCallback />} />
+
+                    <Route path="/profile" element={
+                        <ProtectedRoute loginRequired={true}>
+                            <Profile />
+                        </ProtectedRoute>
+                    } />
                     
                     <Route path="/dashboard" element={
                         <ProtectedRoute 

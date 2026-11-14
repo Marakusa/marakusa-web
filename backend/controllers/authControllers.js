@@ -1,8 +1,9 @@
-const { discordLogin, discordCallback, generateToken, discordGetUser, Profile } = require('../models/authModels');
+const { discordLogin, discordCallback, generateToken, discordGetUser } = require('../models/authModels');
 const { verifyProfile } = require('../utils/profileUtils');
 const jwt = require('jsonwebtoken');
+const { Profile } = require('../models/profileModels');
 
-const login = async (req, res) => {
+const login = async (_, res) => {
     try {
         // Get Discord OAuth authorization URL
         const authUrl = await discordLogin();
@@ -15,7 +16,7 @@ const login = async (req, res) => {
 const verify = async (req, res) => {
     try {
         const { code } = req.query;
-        
+
         // Handle Discord OAuth callback
         const data = await discordCallback(code);
         const discordUserData = await discordGetUser(data.access_token);
@@ -48,6 +49,7 @@ const me = async (req, res) => {
         const profile = await verifyProfile(decoded.profileId);
         res.json({ ...profile.toObject(), admin: profile?.role === 'admin' });
     } catch (error) {
+        console.error('Error decoding token or verifying profile:', error);
         res.status(401).json({ error: 'Invalid token' });
     }
 };

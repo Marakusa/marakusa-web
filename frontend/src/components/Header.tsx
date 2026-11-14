@@ -4,11 +4,26 @@ import { useAuth } from '../context/auth';
 import Avatar from "./Avatar";
 import LinkText from "./LinkText";
 import ContextMenu from "./ContextMenu";
+import { Spinner } from './Spinner';
 
 const Header: React.FC = () => {
     const { user, isLoading, logout } = useAuth();
 
     const [isContextMenuOpen, setIsContextMenuOpen] = React.useState(false);
+    const menuAnchorRef = React.useRef<HTMLDivElement>(null);
+
+    React.useEffect(() => {
+        if (!isContextMenuOpen) return;
+
+        function handlePointerDown(event: PointerEvent) {
+            if (!menuAnchorRef.current?.contains(event.target as Node)) {
+                setIsContextMenuOpen(false);
+            }
+        }
+
+        document.addEventListener('pointerdown', handlePointerDown);
+        return () => document.removeEventListener('pointerdown', handlePointerDown);
+    }, [isContextMenuOpen]);
 
     function toggleContextMenu() {
         setIsContextMenuOpen((isOpen) => !isOpen);
@@ -23,7 +38,15 @@ const Header: React.FC = () => {
                     <LinkText href="/pricing">Pricing</LinkText>
                     <LinkText href="/licenses">Licenses</LinkText>
                     {user ? (
-                        <div className="avatar-menu-anchor">
+                        <div
+                            className="avatar-menu-anchor"
+                            ref={menuAnchorRef}
+                            onClick={(event) => {
+                                if (event.target instanceof Element && event.target.closest('.context-menu a')) {
+                                    setIsContextMenuOpen(false);
+                                }
+                            }}
+                        >
                             <Avatar avatar={user.avatar} username={user.username} onClick={toggleContextMenu} />
                             {isContextMenuOpen && (
                                 <ContextMenu>
@@ -44,7 +67,7 @@ const Header: React.FC = () => {
                         </div>
                     ) : !isLoading ? (
                         <Button onClick={() => window.location.assign('/api/auth/login')}>Log In</Button>
-                    ) : null}
+                    ) : <Spinner />}
                 </nav>
             </header>
         </>

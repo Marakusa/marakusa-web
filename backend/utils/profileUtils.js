@@ -1,4 +1,4 @@
-const { Profile } = require('../models/authModels');
+const { Profile } = require('../models/profileModels');
 
 const verifyProfile = async (profileId) => {
     const profile = await Profile.findById(profileId);
