@@ -10,6 +10,8 @@ import AuthCallback from './pages/AuthCallback';
 import { AuthProvider } from './context/AuthProvider';
 import Dashboard from './pages/dashboard/Dashboard';
 import Profile from './pages/Profile';
+import DashboardHeader from './pages/dashboard/DashboardHeader';
+import DashboardProducts from './pages/dashboard/DashboardProducts';
 
 function App() {
     return (
@@ -28,12 +30,17 @@ function App() {
                         </ProtectedRoute>
                     } />
                     
-                    <Route path="/dashboard" element={
-                        <ProtectedRoute 
-                            loginRequired={true} 
-                            adminOnly={true}>
-                            <Dashboard />
-                        </ProtectedRoute>} />
+                    <Route
+                        path="/dashboard"
+                        element={
+                            <ProtectedRoute loginRequired={true} adminOnly={true}>
+                                <DashboardHeader />
+                            </ProtectedRoute>
+                        }
+                    >
+                        <Route index element={<Dashboard />} />
+                        <Route path="products" element={<DashboardProducts />} />
+                    </Route>
 
                     <Route path="*" element={<NotFound />} />
                 </Routes>

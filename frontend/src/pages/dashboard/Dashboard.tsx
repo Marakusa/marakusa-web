@@ -9,7 +9,7 @@ function Dashboard() {
 
     return (
         <div className="grow">
-            <h1>Dashboard</h1>
+            <h2>Welcome, {user?.username}</h2>
         </div>
     );
 }
