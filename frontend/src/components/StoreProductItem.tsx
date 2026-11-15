@@ -5,10 +5,12 @@ function StoreProductItem({ product }: { product: ProductType }) {
     return (
         <div 
             onClick={() => window.open(product.jinxxy_product_url, '_blank')}
-            className="cursor-pointer border p-4 text-left">
+            className="cursor-pointer box bg-(--bg-2) text-left hover:underline">
             <img src={product.thumbnail_url} alt="Thumbnail" className="mb-2" />
-            <h2>{product.name}</h2>
-            <p>{parseCurrency(product.price, product.currency)}</p>
+            <div className="px-3 py-1 pb-3">
+                <h2>{product.name}</h2>
+                <p>{parseCurrency(product.price, product.currency)}</p>
+            </div>
         </div>
     );
 }
