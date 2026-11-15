@@ -1,5 +1,6 @@
 import './App.css';
 import { BrowserRouter, Outlet, Route, Routes } from 'react-router-dom';
+import Pricing from './pages/Pricing';
 import ProtectedRoute from './context/ProtectedRoute';
 import Header from './components/Header';
 import Footer from './components/Footer';
@@ -23,6 +24,7 @@ function App() {
                     <Route element={<><Header /><Outlet /><Footer /></>}>
                         <Route path="/" element={<Home />} />
                         <Route path="/store" element={<Store />} />
+                        <Route path="/pricing" element={<Pricing />} />
 
                         <Route path="/auth/callback" element={<AuthCallback />} />
 

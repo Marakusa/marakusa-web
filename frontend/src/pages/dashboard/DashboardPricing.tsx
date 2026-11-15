@@ -71,6 +71,7 @@ const DashboardPricing = () => {
                     name: itemToSave.name,
                     price: itemToSave.price,
                     description: itemToSave.description,
+                    image: itemToSave.image,
                 }),
             });
             if (!response.ok) throw new Error('Failed to save pricing');
@@ -136,6 +137,7 @@ const DashboardPricing = () => {
                         <th>Name</th>
                         <th>Price (USD)</th>
                         <th>Notes</th>
+                        <th>Image</th>
                         <th>Actions</th>
                     </tr>
                 </thead>
@@ -190,6 +192,21 @@ const DashboardPricing = () => {
                                 />
                             </td>
                             <td>
+                                <input
+                                    type="text"
+                                    value={item.image || ''}
+                                    disabled={item.saving}
+                                    onChange={(e) => {
+                                        const newImage = e.target.value;
+                                        setPricing((prev) =>
+                                            prev.map((p) =>
+                                                p._id === item._id ? { ...p, image: newImage } : p
+                                            )
+                                        );
+                                    }}
+                                />
+                            </td>
+                            <td>
                                 {item.saving ? <Spinner /> : 
                                 <button className="text-button" disabled={item.saving} onClick={() => saveEditsOrCreate(item._id)}>Save</button>}
                             </td>
@@ -199,6 +216,7 @@ const DashboardPricing = () => {
                             <td>{item.name}</td>
                             <td>${item.price}+</td>
                             <td>{item.description && <p>{item.description}</p>}</td>
+                            <td>{item.image && <img src={'/images/' + item.image} alt={item.name} className="mt-2" width="64" />}</td>
                             <td>
                                 {item.saving ? <Spinner /> : (
                                     <>

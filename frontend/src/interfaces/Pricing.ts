@@ -3,6 +3,7 @@ export interface PricingType {
     name: string;
     price: number;
     description?: string;
+    image?: string;
 
     new?: boolean;
     editing?: boolean;
