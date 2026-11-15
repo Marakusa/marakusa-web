@@ -27,18 +27,21 @@ const Pricing = () => {
 
     return (
         <div className="grow flex flex-col gap-4">
+            <h1 className="text-left">Commission Pricing</h1>
+
             {isLoading && <Spinner />}
             {
                 error ? <div>{error}</div> : 
+
                 pricing.length === 0 ? (
                     <div>No pricing available</div>
                 ) : (
+
                 <>
-                    <h1 className="text-left">Commission Pricing</h1>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4 text-left">
                         {pricing.map((pricing) => (
-                            <div key={pricing._id} className="border">
-                                {pricing.image && <img src={'/images/' + pricing.image} alt={pricing.name} className="mt-2" />}
+                            <div key={pricing._id} className="box bg-(--bg-2)">
+                                {pricing.image && <img src={'/images/' + pricing.image} alt={pricing.name} className="bg-black/50" />}
                                 <div className="p-3">
                                     <h2 className="text-lg font-bold">{pricing.name}</h2>
                                     <p className="text-sm">{pricing.description}</p>
@@ -50,6 +53,8 @@ const Pricing = () => {
                 </>
                 )
             }
+
+            
         </div>
     );
 };
