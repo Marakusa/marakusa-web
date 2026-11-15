@@ -1,6 +1,7 @@
 import './App.css';
 import { BrowserRouter, Outlet, Route, Routes } from 'react-router-dom';
 import Licenses from './pages/Licenses';
+import TermsOfService from './pages/TermsOfService';
 import Pricing from './pages/Pricing';
 import ProtectedRoute from './context/ProtectedRoute';
 import Header from './components/Header';
@@ -27,6 +28,7 @@ function App() {
                         <Route path="/store" element={<Store />} />
                         <Route path="/pricing" element={<Pricing />} />
                         <Route path="/licenses" element={<Licenses />} />
+                        <Route path="/tos" element={<TermsOfService />} />
 
                         <Route path="/auth/callback" element={<AuthCallback />} />
 
