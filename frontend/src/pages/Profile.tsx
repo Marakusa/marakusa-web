@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Spinner } from '../components/Spinner';
 import type { ProfileType } from '../interfaces/Profile';
+import LinkText from '../components/LinkText';
 
 function Profile() {
     const [user, setUser] = useState<ProfileType | null>(null);
@@ -29,9 +30,10 @@ function Profile() {
     return (
         <div className="grow">
             {!isLoading && user ? (
-                <div>
+                <div className="text-left">
+                    <img src={user?.avatar} alt={user?.username} className="w-32 h-32 rounded-full border-2 mb-4" />
                     <h1>Hello, {user?.username}!</h1>
-                    <p>Username: {user.username}</p>
+                    <LinkText href="/licenses">My Licenses</LinkText>
                 </div>
             ) : isLoading ? (
                 <div className="grow"><Spinner /></div>
