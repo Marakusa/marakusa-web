@@ -8,11 +8,12 @@ import Store from './pages/Store';
 import NotFound from './pages/NotFound';
 import AuthCallback from './pages/AuthCallback';
 import { AuthProvider } from './context/AuthProvider';
-import Dashboard from './pages/dashboard/Dashboard';
 import Profile from './pages/Profile';
 import DashboardHeader from './pages/dashboard/DashboardHeader';
-import DashboardProducts from './pages/dashboard/DashboardProducts';
+import Dashboard from './pages/dashboard/Dashboard';
+import DashboardPricing from './pages/dashboard/DashboardPricing';
 import DashboardProduct from './pages/dashboard/DashboardProduct';
+import DashboardProducts from './pages/dashboard/DashboardProducts';
 
 function App() {
     return (
@@ -47,6 +48,7 @@ function App() {
                         <Route index element={<Dashboard />} />
                         <Route path="products" element={<DashboardProducts />} />
                         <Route path="products/:productId" element={<DashboardProduct />} />
+                        <Route path="pricing" element={<DashboardPricing />} />
                     </Route>
                 </Routes>
             </BrowserRouter>

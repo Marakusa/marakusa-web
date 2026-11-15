@@ -36,6 +36,7 @@ function DashboardHeader() {
                 <nav className="flex space-x-12 select-none items-center">
                     <LinkText href="/dashboard">Overview</LinkText>
                     <LinkText href="/dashboard/products">Products</LinkText>
+                    <LinkText href="/dashboard/pricing">Pricing</LinkText>
                     <span>∙</span>
                     <LinkText href="/">Return</LinkText>
                     {user ? (
