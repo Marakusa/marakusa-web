@@ -1,4 +1,14 @@
 const { Pricing } = require('../models/pricingsModels');
+const Base = require('../models/basesModels');
+
+const getBases = async (req, res) => {
+    try {
+        const bases = await Base.find();
+        res.status(200).json(bases);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
 
 const getPricings = async (req, res) => {
     try {
@@ -43,4 +53,4 @@ const deletePricing = async (req, res) => {
     }
 };
 
-module.exports = { getPricings, createPricing, editPricing, deletePricing };
+module.exports = { getPricings, createPricing, editPricing, deletePricing, getBases };

@@ -10,3 +10,10 @@ export interface PricingType {
     edited?: boolean;
     saving?: boolean;
 }
+
+export interface BaseType {
+    _id: string;
+    name: string;
+    thumbnail_name: string;
+    author: string;
+}
