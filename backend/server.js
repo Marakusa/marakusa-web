@@ -7,6 +7,7 @@ const storeRoutes = require('./routes/storeRoutes');
 const authRoutes = require('./routes/authRoutes');
 const profileRoutes = require('./routes/profileRoutes');
 const pricingsRoutes = require('./routes/pricingsRoutes');
+const licenseRoutes = require('./routes/licenseRoutes');
 
 connectToMongoDB();
 
@@ -19,6 +20,7 @@ app.use('/api/store', storeRoutes);
 app.use('/api/auth', authRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/pricings', pricingsRoutes);
+app.use('/api/licenses', licenseRoutes);
 
 app.listen(port, () => {
     console.log(`Server running on port ${port}`);

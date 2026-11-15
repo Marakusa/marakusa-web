@@ -1,20 +1,96 @@
 import { useAuth } from '../context/auth';
 import { Spinner } from '../components/Spinner';
 import LinkText from '../components/LinkText';
+import type { LicenseType } from '../interfaces/License';
+import { useState, useEffect } from 'react';
+import RedeemLicenseForm from '../components/RedeemLicenseForm';
 
 function Licenses() {
     const { user, isLoading } = useAuth();
 
+    const [licenses, setLicenses] = useState<LicenseType[]>([]);
+    const [isLoadingLicenses, setIsLoadingLicenses] = useState(false);
+    const [error, setError] = useState<string | null>(null);
+    const [redeeming, setRedeeming] = useState(false);
+    const [redeemError, setRedeemError] = useState<string | null>(null);
+
+    useEffect(() => {
+        if (!user) return;
+        setIsLoadingLicenses(true);
+        setError(null);
+        fetch('/api/licenses', {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                }
+            })
+            .then(res => res.json())
+            .then(data => setLicenses(data))
+            .catch(err => setError(err.message))
+            .finally(() => setIsLoadingLicenses(false));
+    }, [user]);
+
+    const redeemLicense = async (licenseKey: string) => {
+        setRedeeming(true);
+        setRedeemError(null);
+        try {
+            const res = await fetch('/api/licenses/redeem', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                },
+                body: JSON.stringify({ license_key: licenseKey })
+            });
+            const data = await res.json();
+            if (!res.ok) {
+                throw new Error(data.message || 'Failed to redeem license');
+            }
+            setLicenses(prev => [...prev, data]);
+        } catch (err: any) {
+            setRedeemError(err.message);
+        } finally {
+            setRedeeming(false);
+        }
+    };
+
     return (
         <div className="text-left grow">
             <h1>Licenses</h1>
-            {isLoading && <Spinner />}
-            {!isLoading && (
-                !user ? (
-                    <p>Seems like you are not logged in. Please <LinkText href="/api/auth/login">log in</LinkText> to view your licenses.</p>
-                ) : (
-                    <p>Here you can find information about your licenses.</p>
-                )
+            {(isLoading || isLoadingLicenses) && <Spinner />}
+            {error && <p>{error}</p>}
+            {!isLoading && !isLoadingLicenses && (
+                <>
+                    <div className="box mb-4 p-4">
+                        <RedeemLicenseForm onRedeem={redeemLicense} redeeming={redeeming} redeemError={redeemError} />
+                    </div>
+
+                    {!user ? (
+                        <p>Seems like you are not logged in. Please <LinkText href="/api/auth/login">log in</LinkText> to view your licenses.</p>
+                    ) : (
+                        licenses?.length === 0 ? (
+                            <p>No licenses found.</p>
+                        ) : (
+                            <table>
+                                <thead>
+                                    <tr>
+                                        <th>Thumbnail</th>
+                                        <th>Product</th>
+                                        <th>License Key</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                {licenses.map(license => (
+                                    <tr key={license._id}>
+                                        <td><img width="64" src={license.internal_product_id.thumbnail_url} alt={license.internal_product_id.name} /></td>
+                                        <td>{license.internal_product_id.name}</td>
+                                        <td>{license.license_key}</td>
+                                    </tr>
+                                ))}
+                                </tbody>
+                            </table>
+                        )
+                    )}
+                </>
             )}
         </div>
     );

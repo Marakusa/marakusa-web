@@ -30,4 +30,27 @@ const getProduct = async (id) => {
     return data;
 };
 
-module.exports = { getProducts, getProduct };
+const getJinxxyLicense = async (licenseKey) => {
+    const headers = { 'x-api-key': process.env.JINXXY_API_KEY };
+    const query = await fetch(`${process.env.JINXXY_HOST}/licenses?key=${encodeURIComponent(licenseKey)}`, { headers });
+    if (!query.ok) {
+        const error = new Error('Failed to verify license with Jinxxy');
+        error.statusCode = 502;
+        throw error;
+    }
+
+    const results = (await query.json())?.results;
+    if (!Array.isArray(results) || !results[0]?.id) {
+        return null;
+    }
+
+    const response = await fetch(`${process.env.JINXXY_HOST}/licenses/${encodeURIComponent(results[0].id)}`, { headers });
+    if (!response.ok) {
+        const error = new Error('Failed to fetch license details from Jinxxy');
+        error.statusCode = 502;
+        throw error;
+    }
+    return response.json();
+};
+
+module.exports = { getProducts, getProduct, getJinxxyLicense };
