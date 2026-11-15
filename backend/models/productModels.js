@@ -4,8 +4,12 @@ const ProductSchema = new mongoose.Schema({
     _id: { type: mongoose.Schema.Types.ObjectId, auto: true },
     jinxxy_product_id: { type: String, required: true },
     name: { type: String, required: true },
-    description: { type: String },
-    price: { type: Number, required: true }
+    price: { type: Number, required: true },
+    currency: { type: String, required: true },
+    category: { type: String },
+    jinxxy_product_url: { type: String },
+    thumbnail_url: { type: String },
+    visible: { type: Boolean, default: true },
 });
 
 const Product = mongoose.model("Product", ProductSchema);

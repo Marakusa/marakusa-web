@@ -1,4 +1,4 @@
-const products = async (page = 1, limit = 10) => {
+const getProducts = async (page = 1, limit = 10) => {
     const result = await fetch(`${process.env.JINXXY_HOST}/products?page=${page}&limit=${limit}&sort_order=desc`, {
         method: 'GET',
         headers: {
@@ -14,7 +14,7 @@ const products = async (page = 1, limit = 10) => {
     return data.results;
 };
 
-const product = async (id) => {
+const getProduct = async (id) => {
     const result = await fetch(`${process.env.JINXXY_HOST}/products/${id}`, {
         method: 'GET',
         headers: {
@@ -30,4 +30,4 @@ const product = async (id) => {
     return data;
 };
 
-module.exports = { products, product };
+module.exports = { getProducts, getProduct };

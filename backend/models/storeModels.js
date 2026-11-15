@@ -1,4 +1,4 @@
-const { products: jinxxyProductsService, product: jinxxyProductService } = require('../services/jinxxy');
+const { getProducts, getProduct } = require('../services/jinxxy');
 
 /*const listProducts = () =>
     listCollectionDocuments(
@@ -15,12 +15,12 @@ const jinxxyProducts = async () => {
 
     while (hasMore) {
         // GET products from Jinxxy API
-        const result = await jinxxyProductsService(page, limit);
+        const result = await getProducts(page, limit);
 
         if (result.length > 0) {
             for (const product of result) {
                 // GET product details from Jinxxy API
-                const productData = await jinxxyProductService(product.id);
+                const productData = await getProduct(product.id);
 
                 // Include only PUBLISHED products
                 if (productData.visibility.trim().toUpperCase() !== 'PUBLISHED') {
