@@ -1,5 +1,14 @@
 const { jinxxyProducts } = require('../models/storeModels');
 const { Product } = require('../models/productModels');
+const mongoose = require('mongoose');
+const multer = require('multer');
+const path = require('node:path');
+const fs = require('node:fs/promises');
+const { randomUUID } = require('node:crypto');
+
+const thumbnailDirectory = path.resolve(process.env.THUMBNAIL_UPLOAD_DIR || path.join(__dirname, '../uploads/thumbnails'));
+const thumbnailUrlPrefix = '/api/store/thumbnails/';
+const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 * 1024 * 1024, files: 1 } });
 
 const getAllProducts = async (req, res) => {
     try {
@@ -45,7 +54,62 @@ const importJinxxyProducts = async (req, res) => {
     }
 };
 
+const parseThumbnailUpload = (req, res, next) => {
+    upload.single('thumbnail')(req, res, error => {
+        if (error) {
+            return res.status(error.code === 'LIMIT_FILE_SIZE' ? 413 : 400).json({ message: error.message });
+        }
+        next();
+    });
+};
+
+const uploadProductThumbnail = async (req, res) => {
+    if (!mongoose.isValidObjectId(req.params.productId)) {
+        return res.status(400).json({ message: 'Invalid product ID' });
+    }
+    if (!req.file) {
+        return res.status(400).json({ message: 'A thumbnail image is required' });
+    }
+
+    let filePath;
+    try {
+        const { fileTypeFromBuffer } = await import('file-type');
+        const fileType = await fileTypeFromBuffer(req.file.buffer).catch(() => null);
+        if (!fileType || !['image/jpeg', 'image/png', 'image/webp'].includes(fileType.mime)) {
+            return res.status(400).json({ message: 'Thumbnail must be a JPEG, PNG, or WebP image' });
+        }
+
+        const filename = `${randomUUID()}.${fileType.ext}`;
+        filePath = path.join(thumbnailDirectory, filename);
+        await fs.mkdir(thumbnailDirectory, { recursive: true });
+        await fs.writeFile(filePath, req.file.buffer, { flag: 'wx' });
+
+        const thumbnailUrl = thumbnailUrlPrefix + filename;
+        const previousProduct = await Product.findByIdAndUpdate(req.params.productId, { thumbnail_url: thumbnailUrl });
+        if (!previousProduct) {
+            await fs.unlink(filePath);
+            return res.status(404).json({ message: 'Product not found' });
+        }
+
+        const previousUrl = previousProduct.thumbnail_url || '';
+        const previousFilename = previousUrl.startsWith(thumbnailUrlPrefix) ? previousUrl.slice(thumbnailUrlPrefix.length) : '';
+        if (/^[0-9a-f-]{36}\.(jpg|png|webp)$/.test(previousFilename)) {
+            await fs.unlink(path.join(thumbnailDirectory, previousFilename)).catch(error => {
+                if (error.code !== 'ENOENT') console.error(error);
+            });
+        }
+        return res.json({ thumbnail_url: thumbnailUrl });
+    } catch (error) {
+        if (filePath) await fs.unlink(filePath).catch(() => {});
+        console.error(error);
+        return res.status(500).json({ message: 'Failed to upload thumbnail' });
+    }
+};
+
 module.exports = {
     getAllProducts,
     importJinxxyProducts,
+    parseThumbnailUpload,
+    uploadProductThumbnail,
+    thumbnailDirectory,
 };
