@@ -23,6 +23,23 @@ const getAllProducts = async (req, res) => {
     }
 };
 
+const getProductById = async (req, res) => {
+    if (!mongoose.isValidObjectId(req.params.productId)) {
+        return res.status(400).json({ message: 'Invalid product ID' });
+    }
+    try {
+        const product = await Product.findById(req.params.productId);
+        if (!product) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+        product.jinxxy_product_url = process.env.JINXXY_STORE_BASE_URL + product.jinxxy_product_url;
+        res.json(product);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: error.message });
+    }
+};
+
 const importJinxxyProducts = async (req, res) => {
     try {
         const products = await jinxxyProducts();
@@ -100,7 +117,9 @@ const uploadProductThumbnail = async (req, res) => {
         }
         return res.json({ thumbnail_url: thumbnailUrl });
     } catch (error) {
-        if (filePath) await fs.unlink(filePath).catch(() => {});
+        if (filePath) {
+            await fs.unlink(filePath).catch(() => {});
+        }
         console.error(error);
         return res.status(500).json({ message: 'Failed to upload thumbnail' });
     }
@@ -108,6 +127,7 @@ const uploadProductThumbnail = async (req, res) => {
 
 module.exports = {
     getAllProducts,
+    getProductById,
     importJinxxyProducts,
     parseThumbnailUpload,
     uploadProductThumbnail,

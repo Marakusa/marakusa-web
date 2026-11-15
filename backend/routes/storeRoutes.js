@@ -2,9 +2,10 @@ const express = require('express');
 const router = express.Router();
 const { authAdmin } = require('../middlewares/auth');
 
-const { getAllProducts, importJinxxyProducts, parseThumbnailUpload, uploadProductThumbnail, thumbnailDirectory } = require('../controllers/storeControllers');
+const { getAllProducts, getProductById, importJinxxyProducts, parseThumbnailUpload, uploadProductThumbnail, thumbnailDirectory } = require('../controllers/storeControllers');
 
 router.get('/products', getAllProducts);
+router.get('/products/:productId', getProductById);
 
 // Serve product thumbnails from the upload directory
 router.use('/thumbnails', express.static(thumbnailDirectory, {

@@ -1,12 +1,9 @@
 import { useState, useEffect } from 'react';
 import { Spinner } from '../components/Spinner';
-
-interface Profile {
-    username: string;
-}
+import type { ProfileType } from '../interfaces/Profile';
 
 function Profile() {
-    const [user, setUser] = useState<Profile | null>(null);
+    const [user, setUser] = useState<ProfileType | null>(null);
 
     const [isLoading, setIsLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);

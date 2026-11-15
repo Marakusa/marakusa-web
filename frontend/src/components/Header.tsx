@@ -1,5 +1,6 @@
 import React from 'react';
 import Button from './Button';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/auth';
 import Avatar from "./Avatar";
 import LinkText from "./LinkText";
@@ -8,6 +9,7 @@ import { Spinner } from './Spinner';
 
 const Header: React.FC = () => {
     const { user, isLoading, logout } = useAuth();
+    const navigate = useNavigate();
 
     const [isContextMenuOpen, setIsContextMenuOpen] = React.useState(false);
     const menuAnchorRef = React.useRef<HTMLDivElement>(null);
@@ -32,7 +34,7 @@ const Header: React.FC = () => {
     return (
         <>
             <header>
-                <h1 className="select-none cursor-pointer" onClick={() => window.location.href = '/'}>Marakusa</h1>
+                <h1 className="select-none cursor-pointer" onClick={() => navigate('/')}>Marakusa</h1>
                 <nav className="flex space-x-12 select-none items-center">
                     <LinkText href="/store">Store</LinkText>
                     <LinkText href="/pricing">Pricing</LinkText>

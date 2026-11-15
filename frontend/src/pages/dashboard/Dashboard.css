@@ -1,0 +1,19 @@
+table {
+  border-collapse: collapse;
+    min-width: 100%;
+}
+
+table tbody {
+    min-width: 100%;
+}
+
+table tbody td {
+    border: 2px solid var(--accent-border);
+    padding: 8px;
+}
+table tbody tr {
+    background-color: var(--bg-2);
+}
+table tbody tr:hover {
+    background-color: var(--bg);
+}
