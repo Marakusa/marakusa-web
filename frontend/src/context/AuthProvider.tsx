@@ -8,14 +8,21 @@ const getUserFromToken = (token: string) =>
 const isAuthFailure = (err: unknown) => err instanceof ApiError && err.status === 401;
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
+const retryDelay = (err: unknown, attempt: number) => {
+    if (err instanceof ApiError && err.status === 429 && err.retryAfterMs !== undefined) {
+        return Math.min(err.retryAfterMs, 120_000) + Math.random() * 1000; // jitter so users behind one IP don't all retry at once
+    }
+    return Math.min(2000 * 2 ** attempt, 30_000);
+};
+
 // Retry temporary failures (429, 5xx, network) with backoff; give up immediately on 401
-const getUserWithRetry = async (token: string, attempts = 5): Promise<AuthUser> => {
+const getUserWithRetry = async (token: string, attempts = 3): Promise<AuthUser> => {
     for (let i = 0; ; i++) {
         try {
             return await getUserFromToken(token);
         } catch (err) {
             if (isAuthFailure(err) || i >= attempts - 1) throw err;
-            await sleep(Math.min(2000 * 2 ** i, 30000)); // exponential timeout: (2s, 4s, 8s, etc.)
+            await sleep(retryDelay(err, i)); // Retry-After on 429, otherwise exponential backoff
         }
     }
 };
