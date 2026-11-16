@@ -81,7 +81,8 @@ const parseThumbnailUpload = (req, res, next) => {
 };
 
 const uploadProductThumbnail = async (req, res) => {
-    if (!mongoose.isValidObjectId(req.params.productId)) {
+    const { productId } = req.params;
+    if (!mongoose.isValidObjectId(productId)) {
         return res.status(400).json({ message: 'Invalid product ID' });
     }
     if (!req.file) {
@@ -102,7 +103,7 @@ const uploadProductThumbnail = async (req, res) => {
         await fs.writeFile(filePath, req.file.buffer, { flag: 'wx' });
 
         const thumbnailUrl = thumbnailUrlPrefix + filename;
-        const previousProduct = await Product.findByIdAndUpdate(req.params.productId, { thumbnail_url: thumbnailUrl });
+        const previousProduct = await Product.findByIdAndUpdate(productId, { thumbnail_url: thumbnailUrl });
         if (!previousProduct) {
             await fs.unlink(filePath);
             return res.status(404).json({ message: 'Product not found' });

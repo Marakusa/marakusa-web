@@ -1,6 +1,10 @@
 const { Profile } = require('../models/profileModels');
+const mongoose = require('mongoose');
 
 const verifyProfile = async (profileId) => {
+    if (!mongoose.isValidObjectId(profileId)) {
+        throw new Error('Profile not found');
+    }
     const profile = await Profile.findById(profileId);
     if (!profile) {
         throw new Error('Profile not found');

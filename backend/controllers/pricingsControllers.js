@@ -1,5 +1,6 @@
 const { Pricing } = require('../models/pricingsModels');
 const Base = require('../models/basesModels');
+const { default: mongoose } = require('mongoose');
 
 const getBases = async (req, res) => {
     try {
@@ -21,7 +22,22 @@ const getPricings = async (req, res) => {
 
 const createPricing = async (req, res) => {
     try {
-        const pricing = new Pricing(req.body);
+        if (!req.body) {
+            return res.status(400).json({ message: 'Request body is missing' });
+        }
+        if (!req.body.name) {
+            return res.status(400).json({ message: 'Name is required' });
+        }
+        
+        const { name, price, description, image } = req.body;
+        if (typeof name !== 'string'
+            || (price !== undefined && typeof price !== 'number')
+            || (description !== undefined && typeof description !== 'string')
+            || (image !== undefined && typeof image !== 'string')) {
+            return res.status(400).json({ message: 'Invalid field types' });
+        }
+
+        const pricing = new Pricing({ name, price, description, image });
         await pricing.save();
         res.status(201).json(pricing);
     } catch (error) {
@@ -31,11 +47,35 @@ const createPricing = async (req, res) => {
 
 const editPricing = async (req, res) => {
     try {
-        const pricing = await Pricing.findByIdAndUpdate(req.params.id, req.body, { new: true });
-        if (!pricing) {
+        if (!req.body) {
+            return res.status(400).json({ message: 'Request body is missing' });
+        }
+        if (!req.body.name) {
+            return res.status(400).json({ message: 'Name is required' });
+        }
+
+        const { id } = req.params;
+        if (!mongoose.isValidObjectId(id)) {
+            return res.status(400).json({ message: 'Invalid ID format' });
+        }
+
+        const { name, price, description, image } = req.body;
+        if (typeof name !== 'string'
+            || (price !== undefined && typeof price !== 'number')
+            || (description !== undefined && typeof description !== 'string')
+            || (image !== undefined && typeof image !== 'string')) {
+            return res.status(400).json({ message: 'Invalid field types' });
+        }
+
+        const updatedPricing = await Pricing.findByIdAndUpdate(
+            id, 
+            { name, price, description, image }, 
+            { new: true, runValidators: true }
+        );
+        if (!updatedPricing) {
             return res.status(404).json({ message: 'Pricing not found' });
         }
-        res.status(200).json(pricing);
+        res.status(200).json(updatedPricing);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
@@ -43,7 +83,12 @@ const editPricing = async (req, res) => {
 
 const deletePricing = async (req, res) => {
     try {
-        const pricing = await Pricing.findByIdAndDelete(req.params.id);
+        const { id } = req.params;
+        if (!mongoose.isValidObjectId(id)) {
+            return res.status(400).json({ message: 'Invalid ID format' });
+        }
+
+        const pricing = await Pricing.findByIdAndDelete(id);
         if (!pricing) {
             return res.status(404).json({ message: 'Pricing not found' });
         }
