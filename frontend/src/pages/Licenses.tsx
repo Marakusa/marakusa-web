@@ -4,6 +4,7 @@ import LinkText from '../components/LinkText';
 import type { LicenseType } from '../interfaces/License';
 import { useState, useEffect } from 'react';
 import RedeemLicenseForm from '../components/RedeemLicenseForm';
+import { apiFetch } from '../utils/api';
 
 function Licenses() {
     const { user, isLoading } = useAuth();
@@ -16,38 +17,37 @@ function Licenses() {
 
     useEffect(() => {
         if (!user) return;
-        setIsLoadingLicenses(true);
-        setError(null);
-        fetch('/api/licenses', {
-                headers: {
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
-                }
-            })
-            .then(res => res.json())
-            .then(data => setLicenses(data))
-            .catch(err => setError(err.message))
-            .finally(() => setIsLoadingLicenses(false));
+        const fetchLicenses = async () => {
+            setIsLoadingLicenses(true);
+            setError(null);
+            try {
+                setLicenses(await apiFetch<LicenseType[]>('/api/licenses', {
+                    headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
+                }));
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'Failed to fetch licenses');
+            } finally {
+                setIsLoadingLicenses(false);
+            }
+        };
+        fetchLicenses();
     }, [user]);
 
     const redeemLicense = async (licenseKey: string) => {
         setRedeeming(true);
         setRedeemError(null);
         try {
-            const res = await fetch('/api/licenses/redeem', {
+            const data = await apiFetch<LicenseType>('/api/licenses/redeem', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
-                    'Authorization': `Bearer ${localStorage.getItem('token')}`
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
                 },
-                body: JSON.stringify({ license_key: licenseKey })
+                body: JSON.stringify({ license_key: licenseKey }),
             });
-            const data = await res.json();
-            if (!res.ok) {
-                throw new Error(data.message || 'Failed to redeem license');
-            }
             setLicenses(prev => [...prev, data]);
-        } catch (err: any) {
-            setRedeemError(err.message);
+        } catch (err) {
+            setRedeemError(err instanceof Error ? err.message : 'Failed to redeem license');
         } finally {
             setRedeeming(false);
         }

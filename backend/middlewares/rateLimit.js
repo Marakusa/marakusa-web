@@ -5,6 +5,7 @@ const makeLimiter = (windowMs, limit, opts = {}) => rateLimit({
     limit,
     standardHeaders: 'draft-8',
     legacyHeaders: false,
+    message: { message: 'Too many requests, please try again later.' },
     ...opts,
 });
 

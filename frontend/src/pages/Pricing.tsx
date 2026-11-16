@@ -21,8 +21,8 @@ const Pricing = () => {
                 }
                 const data = await response.json();
                 setPricing(data);
-            } catch (err: any) {
-                setError(err.message);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'Failed to fetch pricing');
             } finally {
                 setIsLoading(false);
             }

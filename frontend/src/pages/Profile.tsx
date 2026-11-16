@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Spinner } from '../components/Spinner';
 import type { ProfileType } from '../interfaces/Profile';
 import LinkText from '../components/LinkText';
+import { apiFetch } from '../utils/api';
 
 function Profile() {
     const [user, setUser] = useState<ProfileType | null>(null);
@@ -12,14 +13,14 @@ function Profile() {
     useEffect(() => {
         const fetchUser = async () => {
             try {
-                const userData = await fetch('/api/profile', {
+                const userData = await apiFetch<ProfileType>('/api/profile', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
-                }).then(res => res.json());
+                });
                 setUser(userData);
             } catch (err) {
-                setError('Failed to fetch user data');
+                setError(err instanceof Error ? err.message : 'Failed to fetch user data');
             } finally {
                 setIsLoading(false);
             }

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import type { ProductType } from '../../interfaces/Product';
 import { parseCurrency } from '../../utils/currency';
 import { Spinner } from '../../components/Spinner';
+import { apiFetch } from '../../utils/api';
 
 const DashboardProducts: React.FC = () => {
     const navigate = useNavigate();
@@ -14,14 +15,14 @@ const DashboardProducts: React.FC = () => {
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const productsData = await fetch('/api/store/products', {
+                const productsData = await apiFetch<ProductType[]>('/api/store/products', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
-                }).then(res => res.json());
+                });
                 setProducts(productsData);
             } catch (err) {
-                setError('Failed to fetch products');
+                setError(err instanceof Error ? err.message : 'Failed to fetch products');
             } finally {
                 setIsLoading(false);
             }
