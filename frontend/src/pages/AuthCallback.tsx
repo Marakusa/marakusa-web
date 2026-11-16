@@ -2,6 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/auth';
 import { Spinner } from '../components/Spinner';
+import { apiFetch } from '../utils/api';
+
+interface VerifyResponse {
+    token?: string;
+    error?: string;
+}
 
 const AuthCallback = () => {
     const navigate = useNavigate();
@@ -20,9 +26,8 @@ const AuthCallback = () => {
         requestStarted.current = true;
         const verify = async () => {
             try {
-                const response = await fetch(`/api/auth/verify?code=${encodeURIComponent(code)}`);
-                const data: { token?: string; error?: string } = await response.json();
-                if (!response.ok || !data.token) {
+                const data = await apiFetch<VerifyResponse>(`/api/auth/verify?code=${encodeURIComponent(code)}`);
+                if (!data.token) {
                     throw new Error(data.error || 'Authorization failed, please try again...');
                 }
 

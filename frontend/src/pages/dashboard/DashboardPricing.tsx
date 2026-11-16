@@ -24,8 +24,8 @@ const DashboardPricing = () => {
                 });
 
                 setPricing(data);
-            } catch (err: any) {
-                setError(err.message);
+            } catch (err) {
+                setError(err instanceof Error ? err.message : 'Failed to fetch pricing data');
             } finally {
                 setIsLoading(false);
             }
@@ -81,8 +81,8 @@ const DashboardPricing = () => {
                     p._id === id ? { ...updatedItem, editing: false, edited: true, saving: false, new: false } : p
                 )
             );
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to save pricing');
             setPricing((prev) =>
                 prev.map((p) =>
                     p._id === id ? { ...p, saving: false } : p
@@ -106,8 +106,8 @@ const DashboardPricing = () => {
             });
             if (!response.ok) throw new Error('Failed to delete pricing');
             setPricing((prev) => prev.filter((p) => p._id !== id));
-        } catch (err: any) {
-            setError(err.message);
+        } catch (err) {
+            setError(err instanceof Error ? err.message : 'Failed to delete pricing');
             setPricing((prev) =>
                 prev.map((p) =>
                     p._id === id ? { ...p, saving: false } : p
@@ -167,7 +167,7 @@ const DashboardPricing = () => {
                                     value={item.price}
                                     disabled={item.saving}
                                     onChange={(e) => {
-                                        const newPrice = parseFloat(e.target.value);
+                                        const newPrice = e.target.value === '' ? 0 : parseFloat(e.target.value);
                                         setPricing((prev) =>
                                             prev.map((p) =>
                                                 p._id === item._id ? { ...p, price: newPrice } : p

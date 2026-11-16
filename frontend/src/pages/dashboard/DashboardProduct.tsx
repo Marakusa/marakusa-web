@@ -4,6 +4,11 @@ import type { ProductType } from '../../interfaces/Product';
 import { parseCurrency } from '../../utils/currency';
 import { Spinner } from '../../components/Spinner';
 import Button from '../../components/Button';
+import { apiFetch } from '../../utils/api';
+
+interface ThumbnailUploadResponse {
+    thumbnail_url: string;
+}
 
 const DashboardProduct: React.FC = () => {
     const { productId } = useParams<{ productId: string }>();
@@ -24,13 +29,11 @@ const DashboardProduct: React.FC = () => {
         try {
             const body = new FormData();
             body.append('thumbnail', file);
-            const response = await fetch(`/api/store/products/${productId}/thumbnail`, {
+            const result = await apiFetch<ThumbnailUploadResponse>(`/api/store/products/${productId}/thumbnail`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${localStorage.getItem('token')}` },
                 body,
             });
-            const result = await response.json();
-            if (!response.ok) throw new Error(result.message || 'Failed to upload thumbnail');
             setProduct(current => current ? { ...current, thumbnail_url: result.thumbnail_url } : current);
         } catch (error) {
             setUploadError(error instanceof Error ? error.message : 'Failed to upload thumbnail');
@@ -42,14 +45,14 @@ const DashboardProduct: React.FC = () => {
     useEffect(() => {
         const fetchProduct = async () => {
             try {
-                const productData = await fetch(`/api/store/products/${productId}`, {
+                const productData = await apiFetch<ProductType>(`/api/store/products/${productId}`, {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
-                }).then(res => res.json());
+                });
                 setProduct(productData);
             } catch (err) {
-                setError('Failed to fetch product');
+                setError(err instanceof Error ? err.message : 'Failed to fetch product');
             } finally {
                 setIsLoading(false);
             }
