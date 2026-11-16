@@ -167,7 +167,7 @@ const DashboardPricing = () => {
                                     value={item.price}
                                     disabled={item.saving}
                                     onChange={(e) => {
-                                        const newPrice = parseFloat(e.target.value);
+                                        const newPrice = e.target.value === '' ? 0 : parseFloat(e.target.value);
                                         setPricing((prev) =>
                                             prev.map((p) =>
                                                 p._id === item._id ? { ...p, price: newPrice } : p

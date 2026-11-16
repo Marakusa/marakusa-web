@@ -11,7 +11,10 @@ const profileRoutes = require('./routes/profileRoutes');
 const pricingsRoutes = require('./routes/pricingsRoutes');
 const licenseRoutes = require('./routes/licenseRoutes');
 
-connectToMongoDB();
+connectToMongoDB().catch(err => {
+    console.error('Failed to connect to MongoDB:', err);
+    process.exit(1);
+});
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -20,9 +23,7 @@ const host = process.env.HOST;
 // 1 = nginx
 // 2 = Cloudflare -> nginx
 const trustProxy = process.env.TRUST_PROXY;
-if (trustProxy) {
-    app.set('trust proxy', /^\d+$/.test(trustProxy) ? Number(trustProxy) : trustProxy);
-}
+if (/^\d+$/.test(trustProxy)) app.set('trust proxy', Number(trustProxy));
 
 app.use(express.json());
 

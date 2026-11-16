@@ -54,9 +54,7 @@ const me = async (req, res) => {
         res.json({ ...profile.toObject(), admin: profile?.role === 'admin' });
     } catch (error) {
         console.error('Error decoding token or verifying profile:', error);
-        const authFailure = error.name === 'JsonWebTokenError'
-            || error.name === 'TokenExpiredError'
-            || error.message === 'Profile not found';
+        const authFailure = error instanceof jwt.JsonWebTokenError || error.message === 'Profile not found';
         res.status(authFailure ? 401 : 500).json({ message: authFailure ? 'Invalid token' : 'Failed to verify session' });
     }
 };

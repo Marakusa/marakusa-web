@@ -12,7 +12,11 @@ export async function apiFetch<T>(input: RequestInfo, init?: RequestInit): Promi
 
     let data: unknown = null;
     if (text) {
-        try { data = JSON.parse(text); } catch { /* not JSON (proxy error page, etc.) */ }
+        try {
+            data = JSON.parse(text);
+        } catch {
+            if (res.ok) throw new ApiError('Invalid JSON response', res.status);
+        }
     }
 
     if (!res.ok) {

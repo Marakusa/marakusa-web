@@ -9,7 +9,7 @@ const isAuthFailure = (err: unknown) => err instanceof ApiError && err.status ==
 const sleep = (ms: number) => new Promise(r => setTimeout(r, ms));
 
 // Retry temporary failures (429, 5xx, network) with backoff; give up immediately on 401
-const getUserWithRetry = async (token: string, attempts = 4): Promise<AuthUser> => {
+const getUserWithRetry = async (token: string, attempts = 5): Promise<AuthUser> => {
     for (let i = 0; ; i++) {
         try {
             return await getUserFromToken(token);
@@ -30,6 +30,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         localStorage.setItem('token', token);
         try {
             setUser(await getUserWithRetry(token));
+            setAuthError(null);
         } catch (err) {
             if (isAuthFailure(err)) localStorage.removeItem('token');
             throw err;
@@ -39,6 +40,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const logout = useCallback(() => {
         localStorage.removeItem('token');
         setUser(null);
+        setAuthError(null);
     }, []);
 
     useEffect(() => {

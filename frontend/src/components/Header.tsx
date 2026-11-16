@@ -67,9 +67,17 @@ const Header: React.FC = () => {
                                 </ContextMenu>
                             )}
                         </div>
-                    ) : !isLoading && !authError ? (
+                    ) : isLoading ? (
+                        <Spinner />
+                    ) : authError ? (
+                        <>
+                            <span role="alert">Session verification failed.</span>
+                            <Button onClick={() => window.location.reload()}>Retry</Button>
+                            <Button onClick={logout}>Log Out</Button>
+                        </>
+                    ) : (
                         <Button onClick={() => window.location.assign('/api/auth/login')}>Log In</Button>
-                    ) : <Spinner />}
+                    )}
                 </nav>
             </header>
         </>
