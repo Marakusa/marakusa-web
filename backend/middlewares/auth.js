@@ -43,4 +43,16 @@ const authAdmin = async (req, res, next) => {
     }
 };
 
-module.exports = { auth, authAdmin, verifyJwt };
+const botAuth = async (req, res, next) => {
+    try {
+        const token = req.headers.authorization?.split(' ')[1];
+        if (!token || token !== process.env.BOT_API_KEY) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+        next();
+    } catch (error) {
+        res.status(401).json({ message: 'Unauthorized' });
+    }
+};
+
+module.exports = { auth, authAdmin, verifyJwt, botAuth };

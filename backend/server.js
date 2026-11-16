@@ -1,5 +1,7 @@
 require('dotenv').config();
-const { verifyJwt } = require('./middlewares/auth');
+const path = require('path');
+const { verifyJwt, botAuth } = require('./middlewares/auth');
+const { getLicensesForUser, redeemLicense } = require('./controllers/licenseControllers');
 const express = require('express');
 const { connectToMongoDB, disconnectFromMongoDB } = require('./services/mongodb');
 
@@ -20,6 +22,9 @@ const app = express();
 const port = process.env.PORT || 3000;
 const host = process.env.HOST;
 
+// Built frontend to serve (set in the Docker image); unset in development, where Vite serves it
+const frontendDist = process.env.FRONTEND_DIST ? path.resolve(process.env.FRONTEND_DIST) : null;
+
 // 1 = nginx
 // 2 = Cloudflare -> nginx
 const trustProxy = process.env.TRUST_PROXY;
@@ -30,15 +35,33 @@ app.use(express.json());
 // No global rate limiter
 app.use('/api/store/thumbnails', serveThumbnails); // static images
 app.use('/api/auth', authRoutes);
+if (frontendDist) {
+    app.use(express.static(frontendDist, { index: false })); // JS/CSS/images
+}
 
 // Global rate limiter applied
 app.use(globalLimiter);
+
+app.use('/api/licenses/bot/:discordId', botAuth, (req, res, next) => {
+    if (req.method === 'GET') return getLicensesForUser(req, res, next);
+    else if (req.method === 'POST') return redeemLicense(req, res, next);
+    next();
+});
+
 app.use(verifyJwt);
 
 app.use('/api/store', storeRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/pricings', pricingsRoutes);
 app.use('/api/licenses', licenseRoutes);
+
+// Single-page app fallback: any other GET outside /api returns index.html so client-side routes work
+if (frontendDist) {
+    app.use((req, res, next) => {
+        if (req.method !== 'GET' || req.path === '/api' || req.path.startsWith('/api/')) return next();
+        res.sendFile(path.join(frontendDist, 'index.html'));
+    });
+}
 
 app.listen(port, host, () => {
     console.log(`Server running on ${host || 'localhost'}:${port}`);
