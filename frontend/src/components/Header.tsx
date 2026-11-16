@@ -8,7 +8,7 @@ import ContextMenu from "./ContextMenu";
 import { Spinner } from './Spinner';
 
 const Header: React.FC = () => {
-    const { user, isLoading, logout } = useAuth();
+    const { user, isLoading, authError, logout } = useAuth();
     const navigate = useNavigate();
 
     const [isContextMenuOpen, setIsContextMenuOpen] = React.useState(false);
@@ -67,7 +67,7 @@ const Header: React.FC = () => {
                                 </ContextMenu>
                             )}
                         </div>
-                    ) : !isLoading ? (
+                    ) : !isLoading && !authError ? (
                         <Button onClick={() => window.location.assign('/api/auth/login')}>Log In</Button>
                     ) : <Spinner />}
                 </nav>
