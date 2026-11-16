@@ -67,15 +67,19 @@ const editPricing = async (req, res) => {
             return res.status(400).json({ message: 'Invalid field types' });
         }
 
-        const updatedPricing = await Pricing.findByIdAndUpdate(
-            id, 
-            { name, price, description, image }, 
-            { new: true, runValidators: true }
-        );
-        if (!updatedPricing) {
+        const pricing = await Pricing.findById(id);
+        if (!pricing) {
             return res.status(404).json({ message: 'Pricing not found' });
         }
-        res.status(200).json(updatedPricing);
+
+        if (price !== undefined) pricing.price = price;
+        if (description !== undefined) pricing.description = description;
+        if (image !== undefined) pricing.image = image;
+        pricing.name = name;
+
+        await pricing.save();
+
+        res.status(200).json(pricing);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
