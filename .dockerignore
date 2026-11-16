@@ -1,0 +1,14 @@
+**/node_modules
+**/dist
+**/.env
+**/.env.*
+!**/.env.example
+backend/uploads
+backend/tests
+.git
+.github
+Jenkinsfile
+Dockerfile
+.dockerignore
+**/*.log
+deploy

@@ -1,0 +1,21 @@
+# Production deployment. Run with a fixed project name so the container and
+# uploads volume stay the same no matter which directory compose runs from:
+#   TAG=<build number> docker compose -p marakusa-web -f deploy/docker-compose.yml up -d
+services:
+  web:
+    image: marakusa/marakusa-web:${TAG:-latest}
+    # Secrets live only on the VPS, never in the image or the repo
+    env_file: /opt/marakusa-web/app.env
+    environment:
+      HOST: 0.0.0.0     # must listen on all interfaces inside the container
+      TRUST_PROXY: "1"  # nginx in front
+    ports:
+      # Only reachable from the VPS itself (nginx). Docker bypasses ufw, so
+      # never publish this as plain "3000:3000".
+      - "127.0.0.1:3000:3000"
+    volumes:
+      - uploads:/app/backend/uploads
+    restart: unless-stopped
+
+volumes:
+  uploads:
