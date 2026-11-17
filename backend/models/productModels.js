@@ -10,7 +10,7 @@ const ProductSchema = new mongoose.Schema({
     jinxxy_product_url: { type: String },
     thumbnail_url: { type: String },
     visible: { type: Boolean, default: true },
-    discord_role_name: { type: String },
+    discord_role_name: { type: String, trim: true, maxlength: 95 },
 });
 
 // Add the store base URL to the jinxxy_product_url
