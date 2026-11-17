@@ -9,6 +9,16 @@ def imageTag() {
     return "branch-${name}-${env.BUILD_NUMBER}"
 }
 
+// Keep the 5 newest numbered (prod) images for rollback; remove older ones and build cache
+def pruneImages() {
+    sh '''
+        docker images "$IMAGE" --format '{{.Tag}}' | grep -E '^[0-9]+$' | sort -n | head -n -5 \
+            | xargs -r -I{} docker rmi "$IMAGE:{}" || true
+        docker image prune -f || true
+        docker builder prune -f --filter until=168h || true
+    '''
+}
+
 pipeline {
     agent any
 
@@ -78,11 +88,17 @@ pipeline {
             // Only runs after a healthy deploy, so :latest (here and on Docker Hub) is always a known-good build
             when { branch 'prod' }
             steps {
-                withCredentials([usernamePassword(credentialsId: 'dockerhub',
-                        usernameVariable: 'DH_USER', passwordVariable: 'DH_TOKEN')]) {
-                    sh 'echo "$DH_TOKEN" | docker login -u "$DH_USER" --password-stdin'
-                    sh 'docker tag $IMAGE:$TAG $IMAGE:latest'
-                    sh 'docker push $IMAGE:$TAG && docker push $IMAGE:latest'
+                // Tag locally first: the new build is already live, so a plain `docker compose up -d`
+                // (TAG unset -> latest) on the VPS must start it even if Docker Hub is unreachable
+                sh 'docker tag $IMAGE:$TAG $IMAGE:latest'
+
+                // A push failure doesn't undo the deploy, so mark the build UNSTABLE instead of FAILED
+                catchError(buildResult: 'UNSTABLE', stageResult: 'FAILURE') {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub',
+                            usernameVariable: 'DH_USER', passwordVariable: 'DH_TOKEN')]) {
+                        sh 'echo "$DH_TOKEN" | docker login -u "$DH_USER" --password-stdin'
+                        sh 'docker push $IMAGE:$TAG && docker push $IMAGE:latest'
+                    }
                 }
             }
         }
@@ -95,13 +111,11 @@ pipeline {
             sh '[ "$BRANCH_NAME" = prod ] || docker rmi "$IMAGE:$TAG" || true'
         }
         success {
-            // Keep the 5 newest numbered images for rollback; remove older ones and build cache
-            sh '''
-                docker images "$IMAGE" --format '{{.Tag}}' | grep -E '^[0-9]+$' | sort -n | head -n -5 \
-                    | xargs -r -I{} docker rmi "$IMAGE:{}" || true
-                docker image prune -f || true
-                docker builder prune -f --filter until=168h || true
-            '''
+            pruneImages()
+        }
+        unstable {
+            // e.g. deployed fine but the Docker Hub push failed
+            pruneImages()
         }
     }
 }
