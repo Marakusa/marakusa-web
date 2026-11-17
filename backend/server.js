@@ -38,6 +38,16 @@ app.use('/api/store/thumbnails', serveThumbnails); // static images
 app.use('/api/auth', authRoutes);
 if (frontendDist) {
     app.use(express.static(frontendDist, { index: false })); // JS/CSS/images
+
+    // Single-page app fallback: any other GET outside /api returns index.html so client-side routes work.
+    // It sits before the global limiter so page loads/refreshes don't use up the API budget.
+    app.use((req, res, next) => {
+        if (req.method !== 'GET' || req.path === '/api' || req.path.startsWith('/api/')) return next();
+        // A path with a file extension (e.g. a stale /assets/index-abc123.js after a deploy) is a missing
+        // file, not a client route: 404 instead of serving HTML the browser would reject as JS/CSS
+        if (path.extname(req.path)) return res.sendStatus(404);
+        res.sendFile(path.join(frontendDist, 'index.html'));
+    });
 }
 
 // All bot traffic comes from one IP, so bot limits are keyed per Discord user instead of per IP.
@@ -62,16 +72,30 @@ app.use('/api/pricings', pricingsRoutes);
 app.use('/api/licenses', licenseRoutes);
 app.use('/api/migrate', migrateRoutes);
 
-// Single-page app fallback: any other GET outside /api returns index.html so client-side routes work
-if (frontendDist) {
-    app.use((req, res, next) => {
-        if (req.method !== 'GET' || req.path === '/api' || req.path.startsWith('/api/')) return next();
-        res.sendFile(path.join(frontendDist, 'index.html'));
-    });
-}
-
-app.listen(port, host, () => {
+const server = app.listen(port, host, () => {
     console.log(`Server running on ${host || 'localhost'}:${port}`);
-}).on('close', async () => {
-    await disconnectFromMongoDB();
 });
+
+let shuttingDown = false;
+const shutdown = (signal) => {
+    if (shuttingDown) return;
+    shuttingDown = true;
+    console.log(`${signal} received, shutting down`);
+
+    setTimeout(() => {
+        console.error('Graceful shutdown timed out, forcing exit');
+        process.exit(1);
+    }, 8000).unref();
+
+    server.close(async () => {
+        try {
+            await disconnectFromMongoDB();
+        } catch (error) {
+            console.error('Failed to disconnect from MongoDB:', error);
+        }
+        process.exit(0);
+    });
+    server.closeIdleConnections();
+};
+process.on('SIGTERM', () => shutdown('SIGTERM'));
+process.on('SIGINT', () => shutdown('SIGINT'));

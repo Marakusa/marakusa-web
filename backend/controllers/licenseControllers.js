@@ -3,48 +3,40 @@ const { Product } = require('../models/productModels');
 const { Profile } = require('../models/profileModels');
 const { getJinxxyLicense } = require('../services/jinxxy');
 
+const LICENSE_PRODUCT_FIELDS = 'jinxxy_product_id name thumbnail_url jinxxy_product_url discord_role_name';
+
 const maskLicenseKey = (licenseKey) => {
     const visibleCharacters = Math.min(4, Math.max(0, licenseKey.length - 1));
     return `${licenseKey.slice(0, visibleCharacters)}${'*'.repeat(licenseKey.length - visibleCharacters)}`;
 };
 
+const findProfile = (req) => {
+    if (req.user?.profileId) return Profile.findById(req.user.profileId);
+    if (req.params?.discordId) return Profile.findOne({ discord_id: req.params.discordId });
+    return null;
+};
+
 const getLicensesForUser = async (req, res) => {
     try {
         const { discordId } = req.params;
-        if (!discordId) {
-            return res.status(400).json({ message: 'Discord ID is required' });
+        const profileId = req.user?.profileId;
+        if (!discordId && !profileId) {
+            return res.status(400).json({ message: 'Discord ID or profile ID is required' });
         }
         
-        const profile = await Profile.findOne({ discord_id: discordId });
+        const profile = await findProfile(req);
         if (!profile) {
             return res.status(404).json({ message: 'Profile not found' });
         }
 
         const licenses = await License.find({ user_id: profile._id })
-            .populate('internal_product_id', 'jinxxy_product_id name thumbnail_url jinxxy_product_url discord_role_name');
+            .populate('internal_product_id', LICENSE_PRODUCT_FIELDS);
         res.json(licenses.map(license => ({
             ...license.toObject(),
             license_key: maskLicenseKey(license.license_key),
         })));
     } catch (error) {
-        res.status(500).json({ message: error.message });
-    }
-};
-
-const getLicenses = async (req, res) => {
-    try {
-        const profile = await Profile.findById(req.user.profileId);
-        if (!profile) {
-            return res.status(404).json({ message: 'Profile not found' });
-        }
-
-        const licenses = await License.find({ user_id: profile._id })
-            .populate('internal_product_id', 'jinxxy_product_id name thumbnail_url jinxxy_product_url discord_role_name');
-        res.json(licenses.map(license => ({
-            ...license.toObject(),
-            license_key: maskLicenseKey(license.license_key),
-        })));
-    } catch (error) {
+        console.error(error.message);
         res.status(500).json({ message: error.message });
     }
 };
@@ -57,17 +49,12 @@ const redeemLicense = async (req, res) => {
     }
 
     try {
-        let profile;
-
-        if (req.user?.profileId) {
-            profile = await Profile.findById(req.user.profileId);
-        } else if (req.params?.discordId) {
-            profile = await Profile.findOne({ discord_id: req.params.discordId });
-        } else {
+        if (!req.user?.profileId && !req.params?.discordId) {
             console.error('No profile identifier provided');
-            return res.status(400).json({ message: 'No profile identifier provided' });
+            return res.status(400).json({ message: 'Discord ID or profile ID is required' });
         }
 
+        const profile = await findProfile(req);
         if (!profile) {
             console.error('Profile not found');
             return res.status(404).json({ message: 'Profile not found' });
@@ -102,7 +89,7 @@ const redeemLicense = async (req, res) => {
             internal_product_id: product._id,
             product_id: String(productId),
         });
-        await license.populate('internal_product_id', 'jinxxy_product_id name thumbnail_url jinxxy_product_url discord_role_name');
+        await license.populate('internal_product_id', LICENSE_PRODUCT_FIELDS);
         res.status(201).json({
             ...license.toObject(),
             license_key: maskLicenseKey(license.license_key),
@@ -117,4 +104,4 @@ const redeemLicense = async (req, res) => {
     }
 };
 
-module.exports = { getLicenses, getLicensesForUser, redeemLicense };
+module.exports = { getLicensesForUser, redeemLicense };
