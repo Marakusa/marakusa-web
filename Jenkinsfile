@@ -1,11 +1,20 @@
+// BUILD_NUMBER is counted per branch, so only prod gets plain numeric tags (used for rollback and
+// cleanup). Other branches get "branch-<name>-<n>". Docker tags allow only [A-Za-z0-9_.-] and at most
+// 128 chars, so the name is sanitized and capped at 100 chars. BRANCH_NAME is only set in multibranch
+// jobs; fall back to "unknown" so a plain pipeline job doesn't crash.
+def imageTag() {
+    if (env.BRANCH_NAME == 'prod') return env.BUILD_NUMBER
+    String name = (env.BRANCH_NAME ?: 'unknown').replaceAll('[^A-Za-z0-9_.-]', '-')
+    name = name.substring(0, Math.min(name.length(), 100))
+    return "branch-${name}-${env.BUILD_NUMBER}"
+}
+
 pipeline {
     agent any
 
     environment {
         IMAGE   = 'marakusa/marakusa-web'
-        // BUILD_NUMBER is counted per branch, so only prod gets plain numeric tags (used for rollback
-        // and cleanup). Other branches get a prefixed tag; Docker tags allow only [A-Za-z0-9_.-].
-        TAG     = "${env.BRANCH_NAME == 'prod' ? env.BUILD_NUMBER : 'branch-' + env.BRANCH_NAME.replaceAll('[^A-Za-z0-9_.-]', '-') + '-' + env.BUILD_NUMBER}"
+        TAG     = "${imageTag()}"
         COMPOSE = 'docker compose -p marakusa-web -f deploy/docker-compose.yml'
     }
 
