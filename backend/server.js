@@ -12,6 +12,7 @@ const authRoutes = require('./routes/authRoutes');
 const profileRoutes = require('./routes/profileRoutes');
 const pricingsRoutes = require('./routes/pricingsRoutes');
 const licenseRoutes = require('./routes/licenseRoutes');
+const migrateRoutes = require('./routes/migrateRoutes');
 
 connectToMongoDB().catch(err => {
     console.error('Failed to connect to MongoDB:', err);
@@ -54,6 +55,7 @@ app.use('/api/store', storeRoutes);
 app.use('/api/profile', profileRoutes);
 app.use('/api/pricings', pricingsRoutes);
 app.use('/api/licenses', licenseRoutes);
+app.use('/api/migrate', migrateRoutes);
 
 // Single-page app fallback: any other GET outside /api returns index.html so client-side routes work
 if (frontendDist) {
