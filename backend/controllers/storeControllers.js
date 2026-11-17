@@ -1,5 +1,5 @@
 const { jinxxyProducts } = require('../models/storeModels');
-const { Product } = require('../models/productModels');
+const { Product, DISCORD_ROLE_NAME_MAX_LENGTH } = require('../models/productModels');
 const mongoose = require('mongoose');
 const multer = require('multer');
 const path = require('node:path');
@@ -137,9 +137,9 @@ const updateProductDiscordRole = async (req, res) => {
         return res.status(400).json({ message: 'discord_role_name must be a string' });
     }
     const trimmed = (roleName ?? '').trim();
-    // Discord role names are limited to 100 characters, also considering 'Owns ' prefix
-    if (trimmed.length > 95) {
-        return res.status(400).json({ message: 'discord_role_name must be at most 95 characters' });
+    // Also enforced by the schema; checked here to return a clear 400 instead of a validation error
+    if (trimmed.length > DISCORD_ROLE_NAME_MAX_LENGTH) {
+        return res.status(400).json({ message: `discord_role_name must be at most ${DISCORD_ROLE_NAME_MAX_LENGTH} characters` });
     }
 
     try {

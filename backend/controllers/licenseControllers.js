@@ -10,24 +10,29 @@ const maskLicenseKey = (licenseKey) => {
     return `${licenseKey.slice(0, visibleCharacters)}${'*'.repeat(licenseKey.length - visibleCharacters)}`;
 };
 
-const findProfile = (req) => {
-    if (req.user?.profileId) return Profile.findById(req.user.profileId);
-    if (req.params?.discordId) return Profile.findOne({ discord_id: req.params.discordId });
-    return null;
+const findProfile = async (req, res) => {
+    let query;
+    if (req.user?.profileId) query = Profile.findById(req.user.profileId);
+    else if (req.params?.discordId) query = Profile.findOne({ discord_id: req.params.discordId });
+    else {
+        console.error('No profile identifier provided');
+        res.status(400).json({ message: 'Discord ID or profile ID is required' });
+        return null;
+    }
+
+    const profile = await query;
+    if (!profile) {
+        console.error('Profile not found');
+        res.status(404).json({ message: 'Profile not found' });
+        return null;
+    }
+    return profile;
 };
 
 const getLicensesForUser = async (req, res) => {
     try {
-        const { discordId } = req.params;
-        const profileId = req.user?.profileId;
-        if (!discordId && !profileId) {
-            return res.status(400).json({ message: 'Discord ID or profile ID is required' });
-        }
-        
-        const profile = await findProfile(req);
-        if (!profile) {
-            return res.status(404).json({ message: 'Profile not found' });
-        }
+        const profile = await findProfile(req, res);
+        if (!profile) return;
 
         const licenses = await License.find({ user_id: profile._id })
             .populate('internal_product_id', LICENSE_PRODUCT_FIELDS);
@@ -49,16 +54,8 @@ const redeemLicense = async (req, res) => {
     }
 
     try {
-        if (!req.user?.profileId && !req.params?.discordId) {
-            console.error('No profile identifier provided');
-            return res.status(400).json({ message: 'Discord ID or profile ID is required' });
-        }
-
-        const profile = await findProfile(req);
-        if (!profile) {
-            console.error('Profile not found');
-            return res.status(404).json({ message: 'Profile not found' });
-        }
+        const profile = await findProfile(req, res);
+        if (!profile) return;
 
         if (await License.exists({ license_key: licenseKey })) {
             console.error('License already redeemed');
