@@ -1,5 +1,6 @@
 const { Profile } = require('../models/profileModels');
 
+const crypto = require('crypto');
 const jwt = require('jsonwebtoken');
 
 const verifyJwt = (req, res, next) => {
@@ -46,7 +47,14 @@ const authAdmin = async (req, res, next) => {
 const botAuth = async (req, res, next) => {
     try {
         const token = req.headers.authorization?.split(' ')[1];
-        if (!token || token !== process.env.BOT_API_KEY) {
+        const expected = process.env.BOT_API_KEY;
+        if (!token || !expected) {
+            return res.status(401).json({ message: 'Unauthorized' });
+        }
+        // Compare fixed-length digests so neither content nor length leaks via timing
+        const tokenHash = crypto.createHash('sha256').update(token).digest();
+        const expectedHash = crypto.createHash('sha256').update(expected).digest();
+        if (!crypto.timingSafeEqual(tokenHash, expectedHash)) {
             return res.status(401).json({ message: 'Unauthorized' });
         }
         next();

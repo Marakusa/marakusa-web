@@ -5,7 +5,7 @@ const { getLicensesForUser, redeemLicense } = require('./controllers/licenseCont
 const express = require('express');
 const { connectToMongoDB, disconnectFromMongoDB } = require('./services/mongodb');
 
-const { globalLimiter } = require('./middlewares/rateLimit');
+const { globalLimiter, makeLimiter } = require('./middlewares/rateLimit');
 
 const { router: storeRoutes, serveThumbnails } = require('./routes/storeRoutes');
 const authRoutes = require('./routes/authRoutes');
@@ -40,14 +40,19 @@ if (frontendDist) {
     app.use(express.static(frontendDist, { index: false })); // JS/CSS/images
 }
 
+// All bot traffic comes from one IP, so bot limits are keyed per Discord user instead of per IP.
+// botAuth runs first so unauthenticated requests can't use up a real user's budget.
+const botLimiter = makeLimiter(60 * 1000, 30, { keyGenerator: req => req.params.discordId });
+// Same per-user redeem limit as the web route (/api/licenses/redeem)
+const botRedeemLimiter = makeLimiter(15 * 60 * 1000, 10, { keyGenerator: req => req.params.discordId });
+app.route('/api/licenses/bot/:discordId')
+    .all(botAuth, botLimiter)
+    .get(getLicensesForUser)
+    .post(botRedeemLimiter, redeemLicense)
+    .all((req, res) => res.status(405).json({ message: 'Method Not Allowed' }));
+
 // Global rate limiter applied
 app.use(globalLimiter);
-
-app.use('/api/licenses/bot/:discordId', botAuth, (req, res, next) => {
-    if (req.method === 'GET') return getLicensesForUser(req, res, next);
-    else if (req.method === 'POST') return redeemLicense(req, res, next);
-    next();
-});
 
 app.use(verifyJwt);
 
