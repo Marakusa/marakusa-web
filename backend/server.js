@@ -50,13 +50,15 @@ if (frontendDist) {
     });
 }
 
+// Overall cap for all bot traffic (single IP), on top of the per-user limits
+const botGlobalLimiter = makeLimiter(60 * 1000, 300);
 // All bot traffic comes from one IP, so bot limits are keyed per Discord user instead of per IP.
 // botAuth runs first so unauthenticated requests can't use up a real user's budget.
 const botLimiter = makeLimiter(60 * 1000, 30, { keyGenerator: req => req.params.discordId });
 // Same per-user redeem limit as the web route (/api/licenses/redeem)
 const botRedeemLimiter = makeLimiter(15 * 60 * 1000, 10, { keyGenerator: req => req.params.discordId });
 app.route('/api/licenses/bot/:discordId')
-    .all(botAuth, botLimiter)
+    .all(botGlobalLimiter, botAuth, botLimiter)
     .get(getLicensesForUser)
     .post(botRedeemLimiter, redeemLicense)
     .all((req, res) => res.status(405).json({ message: 'Method Not Allowed' }));

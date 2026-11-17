@@ -22,10 +22,12 @@ const DashboardProduct: React.FC = () => {
     const thumbnailInput = useRef<HTMLInputElement>(null);
 
     const [editDiscordRole, setEditDiscordRole] = useState(false);
-    const [discordRoleInput, setDiscordRoleInput] = useState(product?.discord_role_name ?? '');
+    const [discordRoleInput, setDiscordRoleInput] = useState('');
     const [discordRoleError, setDiscordRoleError] = useState<string | null>(null);
     const [isSavingDiscordRole, setIsSavingDiscordRole] = useState(false);
     const toggleEditDiscordRole = () => {
+        setDiscordRoleInput(product?.discord_role_name ?? '');
+        setDiscordRoleError(null);
         setEditDiscordRole(!editDiscordRole);
     };
     const saveDiscordRole = async (newRole: string) => {
@@ -33,6 +35,7 @@ const DashboardProduct: React.FC = () => {
 
         try {
             setIsSavingDiscordRole(true);
+            setDiscordRoleError(null);
             const body = JSON.stringify({ discord_role_name: newRole });
             const result = await apiFetch<ProductType>(`/api/store/products/${productId}/discord-role`, {
                 method: 'PUT',
