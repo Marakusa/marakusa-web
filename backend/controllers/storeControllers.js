@@ -13,9 +13,6 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 5 *
 const getAllProducts = async (req, res) => {
     try {
         const products = await Product.find();
-        for (const product of products) {
-            product.jinxxy_product_url = process.env.JINXXY_STORE_BASE_URL + product.jinxxy_product_url;
-        }
         res.json(products);
     } catch (error) {
         console.error(error);
@@ -32,7 +29,6 @@ const getProductById = async (req, res) => {
         if (!product) {
             return res.status(404).json({ message: 'Product not found' });
         }
-        product.jinxxy_product_url = process.env.JINXXY_STORE_BASE_URL + product.jinxxy_product_url;
         res.json(product);
     } catch (error) {
         console.error(error);
@@ -155,7 +151,6 @@ const updateProductDiscordRole = async (req, res) => {
         if (!product) {
             return res.status(404).json({ message: 'Product not found' });
         }
-        product.jinxxy_product_url = process.env.JINXXY_STORE_BASE_URL + product.jinxxy_product_url;
         return res.json(product);
     } catch (error) {
         console.error(error);

@@ -13,6 +13,18 @@ const ProductSchema = new mongoose.Schema({
     discord_role_name: { type: String },
 });
 
+// Add the store base URL to the jinxxy_product_url
+const addStoreBaseUrl = {
+    transform(doc, ret) {
+        if (ret.jinxxy_product_url) {
+            ret.jinxxy_product_url = (process.env.JINXXY_STORE_BASE_URL || '') + ret.jinxxy_product_url;
+        }
+        return ret;
+    },
+};
+ProductSchema.set('toJSON', addStoreBaseUrl);
+ProductSchema.set('toObject', addStoreBaseUrl);
+
 const Product = mongoose.model("Product", ProductSchema);
 
 module.exports = { Product };
