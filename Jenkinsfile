@@ -16,7 +16,9 @@ pipeline {
         stage('Build') {
             steps {
                 // Runs npm ci, the type check and the Vite build inside Docker
-                sh 'docker build -t $IMAGE:$TAG -t $IMAGE:latest .'
+                // Only prod gets :latest (tagged in Push), so a branch/PR build can never become what a
+                // plain `docker compose up -d` (TAG unset -> latest) starts on this VPS
+                sh 'docker build -t $IMAGE:$TAG .'
             }
         }
 
@@ -27,6 +29,7 @@ pipeline {
                 withCredentials([usernamePassword(credentialsId: 'dockerhub',
                         usernameVariable: 'DH_USER', passwordVariable: 'DH_TOKEN')]) {
                     sh 'echo "$DH_TOKEN" | docker login -u "$DH_USER" --password-stdin'
+                    sh 'docker tag $IMAGE:$TAG $IMAGE:latest'
                     sh 'docker push $IMAGE:$TAG && docker push $IMAGE:latest'
                 }
             }
@@ -36,7 +39,8 @@ pipeline {
             when { branch 'prod' }
             steps {
                 // Jenkins runs on the VPS, so the image built above is already local
-                sh '$COMPOSE up -d --remove-orphans'
+                // TAG comes from the environment block; pass it explicitly so the exact build is deployed
+                sh 'TAG="$TAG" $COMPOSE up -d --remove-orphans'
 
                 // Fail the build if the new container doesn't answer within ~60s
                 sh '''
