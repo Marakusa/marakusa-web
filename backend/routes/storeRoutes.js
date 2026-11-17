@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { authAdmin } = require('../middlewares/auth');
 
-const { getAllProducts, getProductById, importJinxxyProducts, parseThumbnailUpload, uploadProductThumbnail, thumbnailDirectory } = require('../controllers/storeControllers');
+const { getAllProducts, getProductById, importJinxxyProducts, parseThumbnailUpload, uploadProductThumbnail, updateProductDiscordRole, thumbnailDirectory } = require('../controllers/storeControllers');
 
 router.get('/products', getAllProducts);
 router.get('/products/:productId', getProductById);
@@ -18,5 +18,6 @@ const serveThumbnails = [
 router.use(authAdmin);
 router.get('/import-jinxxy-products', importJinxxyProducts);
 router.post('/products/:productId/thumbnail', parseThumbnailUpload, uploadProductThumbnail);
+router.put('/products/:productId/discord-role', updateProductDiscordRole);
 
 module.exports = { router, serveThumbnails };

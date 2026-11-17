@@ -10,6 +10,7 @@ const ProductSchema = new mongoose.Schema({
     jinxxy_product_url: { type: String },
     thumbnail_url: { type: String },
     visible: { type: Boolean, default: true },
+    discord_role_name: { type: String },
 });
 
 const Product = mongoose.model("Product", ProductSchema);

@@ -58,7 +58,7 @@ const importJinxxyProducts = async (req, res) => {
             };
 
             if (existingProduct) {
-                await Product.findOneAndUpdate({ jinxxy_product_id: id }, data, { new: true });
+                await Product.findOneAndUpdate({ jinxxy_product_id: id }, data, { returnDocument: 'after' });
             } else {
                 await Product.create(data);
             }
@@ -93,11 +93,15 @@ const uploadProductThumbnail = async (req, res) => {
     try {
         const { fileTypeFromBuffer } = await import('file-type');
         const fileType = await fileTypeFromBuffer(req.file.buffer).catch(() => null);
-        if (!fileType || !['image/jpeg', 'image/png', 'image/webp'].includes(fileType.mime)) {
+        // file-type reports PNGs containing an animation chunk as APNG; store them as plain .png
+        const allowedTypes = { 'image/jpeg': 'jpg', 'image/png': 'png', 'image/apng': 'png', 'image/webp': 'webp' };
+        const ext = fileType && allowedTypes[fileType.mime];
+        if (!ext) {
+            console.warn(`Rejected thumbnail upload with detected type: ${fileType ? fileType.mime : 'unknown'}`);
             return res.status(400).json({ message: 'Thumbnail must be a JPEG, PNG, or WebP image' });
         }
 
-        const filename = `${randomUUID()}.${fileType.ext}`;
+        const filename = `${randomUUID()}.${ext}`;
         filePath = path.join(thumbnailDirectory, filename);
         await fs.mkdir(thumbnailDirectory, { recursive: true });
         await fs.writeFile(filePath, req.file.buffer, { flag: 'wx' });
@@ -126,11 +130,45 @@ const uploadProductThumbnail = async (req, res) => {
     }
 };
 
+const updateProductDiscordRole = async (req, res) => {
+    const { productId } = req.params;
+    if (!mongoose.isValidObjectId(productId)) {
+        return res.status(400).json({ message: 'Invalid product ID' });
+    }
+
+    const roleName = req.body?.discord_role_name;
+    if (roleName !== undefined && roleName !== null && typeof roleName !== 'string') {
+        return res.status(400).json({ message: 'discord_role_name must be a string' });
+    }
+    const trimmed = (roleName ?? '').trim();
+    // Discord role names are limited to 100 characters, also considering 'Owns ' prefix
+    if (trimmed.length > 95) {
+        return res.status(400).json({ message: 'discord_role_name must be at most 95 characters' });
+    }
+
+    try {
+        // An empty value clears the role name so it falls back to the product name
+        const update = trimmed
+            ? { $set: { discord_role_name: trimmed } }
+            : { $unset: { discord_role_name: 1 } };
+        const product = await Product.findByIdAndUpdate(productId, update, { returnDocument: 'after', runValidators: true });
+        if (!product) {
+            return res.status(404).json({ message: 'Product not found' });
+        }
+        product.jinxxy_product_url = process.env.JINXXY_STORE_BASE_URL + product.jinxxy_product_url;
+        return res.json(product);
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ message: 'Failed to update Discord role' });
+    }
+};
+
 module.exports = {
     getAllProducts,
     getProductById,
     importJinxxyProducts,
     parseThumbnailUpload,
     uploadProductThumbnail,
+    updateProductDiscordRole,
     thumbnailDirectory,
 };

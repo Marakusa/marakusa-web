@@ -21,7 +21,7 @@ const getLicensesForUser = async (req, res) => {
         }
 
         const licenses = await License.find({ user_id: profile._id })
-            .populate('internal_product_id', 'jinxxy_product_id name thumbnail_url jinxxy_product_url');
+            .populate('internal_product_id', 'jinxxy_product_id name thumbnail_url jinxxy_product_url discord_role_name');
         res.json(licenses.map(license => ({
             ...license.toObject(),
             license_key: maskLicenseKey(license.license_key),
@@ -39,7 +39,7 @@ const getLicenses = async (req, res) => {
         }
 
         const licenses = await License.find({ user_id: profile._id })
-            .populate('internal_product_id', 'jinxxy_product_id name thumbnail_url jinxxy_product_url');
+            .populate('internal_product_id', 'jinxxy_product_id name thumbnail_url jinxxy_product_url discord_role_name');
         res.json(licenses.map(license => ({
             ...license.toObject(),
             license_key: maskLicenseKey(license.license_key),
@@ -102,7 +102,7 @@ const redeemLicense = async (req, res) => {
             internal_product_id: product._id,
             product_id: String(productId),
         });
-        await license.populate('internal_product_id', 'jinxxy_product_id name thumbnail_url jinxxy_product_url');
+        await license.populate('internal_product_id', 'jinxxy_product_id name thumbnail_url jinxxy_product_url discord_role_name');
         res.status(201).json({
             ...license.toObject(),
             license_key: maskLicenseKey(license.license_key),
