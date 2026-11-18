@@ -26,7 +26,6 @@ const addStoreBaseUrl = {
     },
 };
 ProductSchema.set('toJSON', addStoreBaseUrl);
-ProductSchema.set('toObject', addStoreBaseUrl);
 
 const Product = mongoose.model("Product", ProductSchema);
 
