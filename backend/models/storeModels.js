@@ -1,11 +1,5 @@
 const { getProducts, getProduct } = require('../services/jinxxy');
 
-/*const listProducts = () =>
-    listCollectionDocuments(
-        process.env.APPWRITE_DATABASE_ID,
-        process.env.APPWRITE_STORE_PRODUCTS_COLLECTION_ID,
-    );*/
-
 const jinxxyProducts = async () => {
     const limit = 10;
 
