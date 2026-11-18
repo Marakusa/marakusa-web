@@ -43,14 +43,19 @@ const verify = async (req, res) => {
 
 const me = async (req, res) => {
     try {
-        const decoded = jwt.verify(req.headers.authorization.split(' ')[1], process.env.JWT_SECRET);
+        const header = req.headers.authorization;
+        if (!header || !header.startsWith('Bearer ')) {
+            return res.status(401).json({ message: 'Invalid token' });
+        }
+        const decoded = jwt.verify(header.slice(7), process.env.JWT_SECRET);
 
         // Verify the user role
         const profile = await verifyProfile(decoded.profileId);
         res.json({ ...profile.toObject(), admin: profile?.role === 'admin' });
     } catch (error) {
         console.error('Error decoding token or verifying profile:', error);
-        res.status(401).json({ error: 'Invalid token' });
+        const authFailure = error instanceof jwt.JsonWebTokenError || error.message === 'Profile not found';
+        res.status(authFailure ? 401 : 500).json({ message: authFailure ? 'Invalid token' : 'Failed to verify session' });
     }
 };
 

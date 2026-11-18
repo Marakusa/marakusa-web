@@ -8,4 +8,5 @@ export interface ProductType {
     jinxxy_product_url: string;
     thumbnail_url?: string;
     visible: boolean;
+    discord_role_name?: string;
 }

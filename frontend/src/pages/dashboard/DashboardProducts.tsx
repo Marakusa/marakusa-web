@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import type { ProductType } from '../../interfaces/Product';
 import { parseCurrency } from '../../utils/currency';
 import { Spinner } from '../../components/Spinner';
+import { apiFetch } from '../../utils/api';
 
 const DashboardProducts: React.FC = () => {
     const navigate = useNavigate();
@@ -14,14 +15,14 @@ const DashboardProducts: React.FC = () => {
     useEffect(() => {
         const fetchProducts = async () => {
             try {
-                const productsData = await fetch('/api/store/products', {
+                const productsData = await apiFetch<ProductType[]>('/api/store/products', {
                     headers: {
                         'Authorization': `Bearer ${localStorage.getItem('token')}`
                     }
-                }).then(res => res.json());
+                });
                 setProducts(productsData);
             } catch (err) {
-                setError('Failed to fetch products');
+                setError(err instanceof Error ? err.message : 'Failed to fetch products');
             } finally {
                 setIsLoading(false);
             }
@@ -47,11 +48,12 @@ const DashboardProducts: React.FC = () => {
                             <th>Category</th>
                             <th>URL</th>
                             <th>Visible</th>
+                            <th>Discord Role</th>
                         </tr>
                     </thead>
                     <tbody>
                         {products.map(product => (
-                            <tr key={product._id} onClick={() => navigate(`/dashboard/products/${product._id}`)}>
+                            <tr key={product._id} onClick={() => navigate(`/dashboard/products/${product._id}`)} className="cursor-pointer">
                                 <td><img src={product.thumbnail_url} width="50" height="50" /></td>
                                 <td>{product.jinxxy_product_id}</td>
                                 <td>{product.name}</td>
@@ -59,6 +61,7 @@ const DashboardProducts: React.FC = () => {
                                 <td>{product.category}</td>
                                 <td><a href={product.jinxxy_product_url} target="_blank" rel="noopener noreferrer">Link</a></td>
                                 <td>{product.visible ? 'Published' : 'Unpublished'}</td>
+                                <td>{product.discord_role_name ?? '-'}</td>
                             </tr>
                         ))}
                     </tbody>
