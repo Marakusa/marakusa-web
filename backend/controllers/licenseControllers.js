@@ -2,13 +2,9 @@ const { License } = require('../models/licenseModels');
 const { Product } = require('../models/productModels');
 const { Profile } = require('../models/profileModels');
 const { getJinxxyLicense } = require('../services/jinxxy');
+const { hashLicenseKey, maskLicenseKey } = require('../utils/licenseUtils');
 
 const LICENSE_PRODUCT_FIELDS = 'jinxxy_product_id name thumbnail_url jinxxy_product_url discord_role_name';
-
-const maskLicenseKey = (licenseKey) => {
-    const visibleCharacters = Math.min(4, Math.max(0, licenseKey.length - 1));
-    return `${licenseKey.slice(0, visibleCharacters)}${'*'.repeat(licenseKey.length - visibleCharacters)}`;
-};
 
 const findProfile = async (req, res) => {
     let query;
@@ -38,7 +34,7 @@ const getLicensesForUser = async (req, res) => {
             .populate('internal_product_id', LICENSE_PRODUCT_FIELDS);
         res.json(licenses.map(license => ({
             ...license.toObject(),
-            license_key: maskLicenseKey(license.license_key),
+            license_key: license.license_key_hint,
         })));
     } catch (error) {
         console.error(error.message);
@@ -54,10 +50,12 @@ const redeemLicense = async (req, res) => {
     }
 
     try {
+        const hashedLicenseKey = hashLicenseKey(licenseKey);
+
         const profile = await findProfile(req, res);
         if (!profile) return;
 
-        if (await License.exists({ license_key: licenseKey })) {
+        if (await License.exists({ license_key: hashedLicenseKey })) {
             console.error('License already redeemed');
             return res.status(409).json({ message: 'License already redeemed' });
         }
@@ -82,14 +80,15 @@ const redeemLicense = async (req, res) => {
 
         const license = await License.create({
             user_id: profile._id,
-            license_key: licenseKey,
+            license_key: hashedLicenseKey,
+            license_key_hint: maskLicenseKey(licenseKey),
             internal_product_id: product._id,
             product_id: String(productId),
         });
         await license.populate('internal_product_id', LICENSE_PRODUCT_FIELDS);
         res.status(201).json({
             ...license.toObject(),
-            license_key: maskLicenseKey(license.license_key),
+            license_key: license.license_key_hint,
         });
     } catch (error) {
         if (error.code === 11000) {

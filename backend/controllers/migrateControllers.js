@@ -2,16 +2,7 @@ const { readAll } = require('../services/appwrite');
 const { License } = require('../models/licenseModels');
 const { Product } = require('../models/productModels');
 const { Profile } = require('../models/profileModels');
-
-const getMigrationProgress = async (req, res) => {
-    try {
-        // Your logic to get migration progress goes here
-        res.status(200).json({ progress: 'Migration progress' });
-    } catch (error) {
-        console.error('Failed to get migration progress:', error);
-        res.status(500).json({ error: 'Failed to get migration progress' });
-    }
-};
+const { hashLicenseKey, maskLicenseKey } = require('../utils/licenseUtils');
 
 const migrateFromAppwrite = async (req, res) => {
     try {
@@ -66,7 +57,13 @@ const migrateFromAppwrite = async (req, res) => {
 
             // Migrate non existing licenses
             for (const awLicense of profileLicenses) {
-                const existingLicense = licenses.find(license => license.license_key === awLicense.license_key);
+                if (!awLicense.license_key?.trim()) {
+                    notMigrateableLicenses++;
+                    continue;
+                }
+                const awLicenseHash = hashLicenseKey(awLicense.license_key);
+
+                const existingLicense = licenses.find(license => license.license_key === awLicenseHash);
                 if (!existingLicense) {
                     const product = products.find(product => product.jinxxy_product_id === awLicense.product_id);
                     if (!product) {
@@ -75,9 +72,10 @@ const migrateFromAppwrite = async (req, res) => {
                     }
                     const newLicense = await License.create({
                         user_id: profile._id,
-                        license_key: awLicense.license_key,
+                        license_key: awLicenseHash,
                         product_id: product.jinxxy_product_id,
-                        internal_product_id: product._id
+                        internal_product_id: product._id,
+                        license_key_hint: maskLicenseKey(awLicense.license_key)
                     });
                     licenses.push(newLicense);
                     migratedLicenses++;
@@ -101,4 +99,4 @@ const migrateFromAppwrite = async (req, res) => {
     }
 };
 
-module.exports = { migrateFromAppwrite, getMigrationProgress };
+module.exports = { migrateFromAppwrite };
