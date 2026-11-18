@@ -41,7 +41,7 @@ if (frontendDist) {
 
     // Single-page app fallback: any other GET outside /api returns index.html so client-side routes work.
     // It sits before the global limiter so page loads/refreshes don't use up the API budget.
-    const pageLimiter = makeLimiter(60 * 1000, 120);
+    const pageLimiter = makeLimiter(60 * 1000, 300);
     app.use(pageLimiter, (req, res, next) => {
         if (req.method !== 'GET' || req.path === '/api' || req.path.startsWith('/api/')) return next();
         // A path with a file extension (e.g. a stale /assets/index-abc123.js after a deploy) is a missing
