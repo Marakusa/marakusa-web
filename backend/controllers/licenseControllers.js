@@ -2,26 +2,42 @@ const { License } = require('../models/licenseModels');
 const { Product } = require('../models/productModels');
 const { Profile } = require('../models/profileModels');
 const { getJinxxyLicense } = require('../services/jinxxy');
+const { hashLicenseKey, maskLicenseKey } = require('../utils/licenseUtils');
 
-const maskLicenseKey = (licenseKey) => {
-    const visibleCharacters = Math.min(4, Math.max(0, licenseKey.length - 1));
-    return `${licenseKey.slice(0, visibleCharacters)}${'*'.repeat(licenseKey.length - visibleCharacters)}`;
+const LICENSE_PRODUCT_FIELDS = 'jinxxy_product_id name thumbnail_url jinxxy_product_url discord_role_name';
+
+const findProfile = async (req, res) => {
+    let query;
+    if (req.user?.profileId) query = Profile.findById(req.user.profileId);
+    else if (req.params?.discordId) query = Profile.findOne({ discord_id: req.params.discordId });
+    else {
+        console.error('No profile identifier provided');
+        res.status(400).json({ message: 'Discord ID or profile ID is required' });
+        return null;
+    }
+
+    const profile = await query;
+    if (!profile) {
+        console.error('Profile not found');
+        res.status(404).json({ message: 'Profile not found' });
+        return null;
+    }
+    return profile;
 };
 
-const getLicenses = async (req, res) => {
+const getLicensesForUser = async (req, res) => {
     try {
-        const profile = await Profile.findById(req.user.profileId);
-        if (!profile) {
-            return res.status(404).json({ message: 'Profile not found' });
-        }
+        const profile = await findProfile(req, res);
+        if (!profile) return;
 
         const licenses = await License.find({ user_id: profile._id })
-            .populate('internal_product_id', 'name thumbnail_url jinxxy_product_url');
+            .populate('internal_product_id', LICENSE_PRODUCT_FIELDS);
         res.json(licenses.map(license => ({
             ...license.toObject(),
-            license_key: maskLicenseKey(license.license_key),
+            license_key: license.license_key_hint,
         })));
     } catch (error) {
+        console.error(error.message);
         res.status(500).json({ message: error.message });
     }
 };
@@ -34,13 +50,12 @@ const redeemLicense = async (req, res) => {
     }
 
     try {
-        const profile = await Profile.findById(req.user.profileId);
-        if (!profile) {
-            console.error('Profile not found');
-            return res.status(404).json({ message: 'Profile not found' });
-        }
+        const hashedLicenseKey = hashLicenseKey(licenseKey);
 
-        if (await License.exists({ license_key: licenseKey })) {
+        const profile = await findProfile(req, res);
+        if (!profile) return;
+
+        if (await License.exists({ license_key: hashedLicenseKey })) {
             console.error('License already redeemed');
             return res.status(409).json({ message: 'License already redeemed' });
         }
@@ -65,14 +80,15 @@ const redeemLicense = async (req, res) => {
 
         const license = await License.create({
             user_id: profile._id,
-            license_key: licenseKey,
+            license_key: hashedLicenseKey,
+            license_key_hint: maskLicenseKey(licenseKey),
             internal_product_id: product._id,
             product_id: String(productId),
         });
-        await license.populate('internal_product_id', 'name thumbnail_url jinxxy_product_url');
+        await license.populate('internal_product_id', LICENSE_PRODUCT_FIELDS);
         res.status(201).json({
             ...license.toObject(),
-            license_key: maskLicenseKey(license.license_key),
+            license_key: license.license_key_hint,
         });
     } catch (error) {
         if (error.code === 11000) {
@@ -84,4 +100,4 @@ const redeemLicense = async (req, res) => {
     }
 };
 
-module.exports = { getLicenses, redeemLicense };
+module.exports = { getLicensesForUser, redeemLicense };
