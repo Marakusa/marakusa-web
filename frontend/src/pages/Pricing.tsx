@@ -60,7 +60,7 @@ const Pricing = () => {
                 <>
                     <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4 text-left">
                         {pricing.map((pricing) => (
-                            <div key={pricing._id} className="box bg-(--bg-2)">
+                            <div key={pricing._id} className="box bg-(--card-bg)">
                                 {pricing.image && <img src={'/images/' + pricing.image} alt={pricing.name} className="bg-black/50" />}
                                 <div className="p-3">
                                     <h2 className="text-lg font-bold">{pricing.name}</h2>
