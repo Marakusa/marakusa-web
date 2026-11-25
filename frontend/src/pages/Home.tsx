@@ -11,7 +11,7 @@ const announcements = {
   blackFriday: {
     bannerImage: blackFriday2026,
     title: "Black Friday Sale",
-    description: "Avatars are on sale on Jinxxy until December 2nd!",
+    description: "Store wide sale on Jinxxy until December 2nd!",
     linkHref: "https://jinxxy.com/Marakusa",
     linkText: "Jinxxy",
   },
