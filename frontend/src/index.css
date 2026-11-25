@@ -3,30 +3,33 @@
 @import 'tailwindcss';
 
 :root {
-  --text: #f7b1b6;
-  --text-h: #f5cfd2;
-  --bg: #250902;
-  --bg-2: #38040e;
+  --text: #ffffff;
+  --text-h: #000000;
+  --bg: #0c0000;
+  --bg-2: #000000;
   --border: #2e303a;
   --code-bg: #1f2028;
-  --link: #e9757c;
-  --link-hover: #c2535a;
-  --accent: #ad2831;
-  --accent-hover: #800e13;
+  --link: #F7253F;
+  --link-hover: #d1162c;
+  --accent: #F7253F;
+  --accent-hover: #cc1025;
+  --accent-link: #ffffff;
+  --card-bg: #F7253F;
+  --card-bg-2: #49040c;
   --accent-bg: rgba(192, 132, 252, 0.15);
-  --accent-border: #56080d;
+  --accent-border: #ad091c;
   --social-bg: rgba(47, 48, 58, 0.5);
   --shadow:
     rgba(0, 0, 0, 0.4) 0 10px 15px -3px, rgba(0, 0, 0, 0.25) 0 4px 6px -2px;
 
   --sans: 'Switzer-Variable', system-ui, sans-serif;
   --heading: 'Switzer-Variable', system-ui, sans-serif;
-  --title: 'Bebas Neue', system-ui, sans-serif;
+  --title: 'Switzer-VariableItalic', system-ui, sans-serif;
   --mono: ui-monospace, Consolas, monospace;
 
-  --switzer: 'Switzer-Regular', system-ui, sans-serif;
+  --switzer: 'Switzer-Variable', system-ui, sans-serif;
   --switzer-bold: 'Switzer-Bold', system-ui, sans-serif;
-  --switzer-italic: 'Switzer-Italic', system-ui, sans-serif;
+  --switzer-italic: 'Switzer-VariableItalic', system-ui, sans-serif;
 
   font: 18px/145% var(--sans);
   letter-spacing: 0.18px;
@@ -61,13 +64,25 @@
 }
 
 header {
-  padding: 16px;
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 header h1 {
   font-family: var(--title);
+  font-weight: 900;
+  text-transform: uppercase;
+  padding: 16px 14px 16px 6px;
+  position: relative;
+  isolation: isolate;
+}
+header h1::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-color: var(--accent);
+  transform: skewX(-10deg);
+  z-index: -1;
 }
 
 body {
@@ -83,10 +98,14 @@ body {
   }
 }
 
+header h1 {
+    color: var(--text-h);
+}
 h1 {
   font-size: 56px;
   letter-spacing: -1.68px;
   margin: 32px 0;
+  color: var(--text);
   @media (max-width: 1024px) {
     font-size: 36px;
     margin: 20px 0;
@@ -97,6 +116,7 @@ h2 {
   line-height: 118%;
   letter-spacing: -0.24px;
   margin: 0 0 8px;
+  color: var(--text);
   @media (max-width: 1024px) {
     font-size: 20px;
   }
@@ -135,11 +155,17 @@ code {
 }
 .announcement .announcement-content {
   padding: 16px;
-  background-color: var(--bg-2);
+  background-color: var(--card-bg);
   border: 2px solid var(--accent-border);
   box-shadow: 0 0 16px 16px #00000057;
   position: absolute;
   transform: translate(6px, calc(-100% - 6px));
+}
+.announcement .announcement-content a {
+  font-family: var(--switzer-italic);
+  color: var(--accent-link);
+  text-decoration: underline;
+  font-weight: 900;
 }
 
 .btn {
@@ -167,18 +193,33 @@ code {
 nav .link-text {
   color: var(--text);
   font-size: x-large;
-  font-family: var(--switzer-bold);
+  font-family: var(--switzer-italic);
+  font-weight: 900;
   cursor: pointer;
+  position: relative;
+  isolation: isolate;
+  padding: 4px 8px;
 }
 .link-text {
   color: var(--link);
-  text-decoration: underline;
 }
 .link-text:hover {
   color: var(--link-hover);
 }
 .link-text::after {
   content: ' ↗';
+  padding-left: 4px;
+}
+nav .link-text::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background-color: var(--accent);
+  transform: skewX(-10deg);
+  z-index: -1;
+}
+nav .link-text:hover {
+  color: var(--text-h);
 }
 
 .context-menu {
@@ -207,6 +248,7 @@ nav .link-text {
 }
 
 .box {
+  background-color: var(--card-bg-2);
   border: 2px solid var(--accent-border);
   box-shadow: 4px 4px 0 0 var(--accent-border);
 }
